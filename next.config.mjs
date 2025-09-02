@@ -21,7 +21,7 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/:lang",
+        source: "/:lang(en|ar)",
         destination: process.env.HOME_PATHNAME,
         permanent: true,
         has: [
@@ -32,7 +32,7 @@ const nextConfig = {
         ],
       },
       {
-        source: "/:lang",
+        source: "/:lang(en|ar)",
         destination: process.env.HOME_PATHNAME,
         permanent: true,
         has: [

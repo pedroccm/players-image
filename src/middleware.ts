@@ -33,7 +33,14 @@ function redirect(pathname: string, request: NextRequest) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  console.log(pathname)
+  console.log('MIDDLEWARE:', pathname)
+  
+  // Skip middleware for chat-image and photo-mix routes
+  if (pathname.startsWith('/chat-image') || pathname.startsWith('/photo-mix')) {
+    console.log('SKIPPING MIDDLEWARE FOR:', pathname)
+    return NextResponse.next()
+  }
+  
   const locale = getLocaleFromPathname(pathname)
   const pathnameWithoutLocale = ensureWithoutPrefix(pathname, `/${locale}`)
   const isNotPublic = !isPublicRoute(pathnameWithoutLocale)
@@ -82,15 +89,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     * - images folder
-     * - docs
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|images|docs).*)",
+    // Explicitly exclude chat-image, photo-mix and their subpaths
+    "/((?!api|_next|favicon.ico|sitemap.xml|robots.txt|images|docs|chat-image|photo-mix).*)",
   ],
 }
