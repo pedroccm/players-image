@@ -38,8 +38,8 @@ Before running the project locally, you need to configure your environment varia
 cp .env.example .env
 ```
 
-* Make any necessary modifications to the `.env` file based on your local setup.
-* Never commit `.env` file—only `.env.example` should be tracked in version control.
+- Make any necessary modifications to the `.env` file based on your local setup.
+- Never commit `.env` file—only `.env.example` should be tracked in version control.
 
 ### 5. Install dependencies
 
