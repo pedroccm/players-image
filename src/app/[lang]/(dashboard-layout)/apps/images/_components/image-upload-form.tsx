@@ -41,8 +41,8 @@ export function ImageUploadForm({
 }: ImageUploadFormProps) {
   const [image1Preview, setImage1Preview] = useState<string | null>(null)
   const [image2Preview, setImage2Preview] = useState<string | null>(null)
-  const [image1File, setImage1File] = useState<File | null>(null)
-  const [image2File, setImage2File] = useState<File | null>(null)
+  const [_image1File, setImage1File] = useState<File | null>(null)
+  const [_image2File, setImage2File] = useState<File | null>(null)
 
   const form = useForm<ImageCreateFormData>({
     resolver: zodResolver(imageCreateSchema),

@@ -22,7 +22,15 @@ export async function POST(request: NextRequest) {
       image2Url: image2Url || null,
     })
 
-    const results: any[] = []
+    const results: Array<{
+      type: string
+      success: boolean
+      name?: string
+      url?: string
+      status?: string
+      data?: unknown
+      error?: string
+    }> = []
 
     // Handle first image
     if (image1File) {
@@ -39,6 +47,7 @@ export async function POST(request: NextRequest) {
 
         results.push({
           type: "file",
+          success: true,
           name: image1File.name,
           url: publicUrl,
           status: "success",
@@ -47,6 +56,7 @@ export async function POST(request: NextRequest) {
         console.error("Error uploading image1:", error)
         results.push({
           type: "file",
+          success: false,
           name: image1File.name,
           error: error instanceof Error ? error.message : "Unknown error",
           status: "error",
@@ -56,6 +66,7 @@ export async function POST(request: NextRequest) {
       console.log("Using image1Url:", image1Url)
       results.push({
         type: "url",
+        success: true,
         url: image1Url,
         status: "success",
       })
@@ -76,6 +87,7 @@ export async function POST(request: NextRequest) {
 
         results.push({
           type: "file",
+          success: true,
           name: image2File.name,
           url: publicUrl,
           status: "success",
@@ -84,6 +96,7 @@ export async function POST(request: NextRequest) {
         console.error("Error uploading image2:", error)
         results.push({
           type: "file",
+          success: false,
           name: image2File.name,
           error: error instanceof Error ? error.message : "Unknown error",
           status: "error",
@@ -93,6 +106,7 @@ export async function POST(request: NextRequest) {
       console.log("Using image2Url:", image2Url)
       results.push({
         type: "url",
+        success: true,
         url: image2Url,
         status: "success",
       })
