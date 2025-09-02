@@ -1,15 +1,16 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Send, Loader2 } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
+import { Loader2, Send } from "lucide-react"
+
+import type { ChatMessageProps } from "./chat-message"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { toast } from "sonner"
-
-import { ChatMessage, type ChatMessageProps } from "./chat-message"
 import { ChatImageUpload } from "./chat-image-upload"
+import { ChatMessage } from "./chat-message"
 
 type ChatStep = "name" | "player-photo" | "generating" | "completed"
 
@@ -20,7 +21,8 @@ interface ChatState {
   generatedImageUrl: string
 }
 
-const FIXED_BACKGROUND_URL = "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/temp-1756770236033-2.jpeg"
+const FIXED_BACKGROUND_URL =
+  "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/temp-1756770236033-2.jpeg"
 
 export function ChatInterface() {
   const [chatState, setChatState] = useState<ChatState>({
@@ -29,15 +31,16 @@ export function ChatInterface() {
     playerImageUrl: "",
     generatedImageUrl: "",
   })
-  
+
   const [messages, setMessages] = useState<ChatMessageProps[]>([
     {
       type: "bot",
-      content: "Olá! Vou te ajudar a criar uma imagem personalizada. Qual o seu nome?",
+      content:
+        "Olá! Vou te ajudar a criar uma imagem personalizada. Qual o seu nome?",
       timestamp: new Date(),
     },
   ])
-  
+
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -46,7 +49,9 @@ export function ChatInterface() {
   // Auto scroll to bottom
   useEffect(() => {
     if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
+      const scrollContainer = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      )
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight
       }
@@ -61,23 +66,26 @@ export function ChatInterface() {
   }, [isTyping])
 
   const addMessage = (message: Omit<ChatMessageProps, "timestamp">) => {
-    setMessages(prev => [...prev, { ...message, timestamp: new Date() }])
+    setMessages((prev) => [...prev, { ...message, timestamp: new Date() }])
   }
 
   const addBotMessage = async (content: string, delay = 1000) => {
     setIsTyping(true)
-    setMessages(prev => [...prev, { 
-      type: "bot", 
-      content: "", 
-      isTyping: true,
-      timestamp: new Date()
-    }])
-    
-    await new Promise(resolve => setTimeout(resolve, delay))
-    
-    setMessages(prev => [
+    setMessages((prev) => [
+      ...prev,
+      {
+        type: "bot",
+        content: "",
+        isTyping: true,
+        timestamp: new Date(),
+      },
+    ])
+
+    await new Promise((resolve) => setTimeout(resolve, delay))
+
+    setMessages((prev) => [
       ...prev.slice(0, -1),
-      { type: "bot", content, timestamp: new Date() }
+      { type: "bot", content, timestamp: new Date() },
     ])
     setIsTyping(false)
   }
@@ -92,37 +100,32 @@ export function ChatInterface() {
       userName: name,
     })
 
-    setChatState(prev => ({ ...prev, userName: name, step: "player-photo" }))
+    setChatState((prev) => ({ ...prev, userName: name, step: "player-photo" }))
     setInputValue("")
 
-    await addBotMessage(
-      `Oi ${name}! Agora envie uma foto sua:`,
-      1500
-    )
+    await addBotMessage(`Oi ${name}! Agora envie uma foto sua:`, 1500)
   }
 
   const handlePlayerImageUploaded = async (imageUrl: string) => {
     // Se já estamos na etapa completed, significa que é uma nova foto
     const isNewPhoto = chatState.step === "completed"
-    
-    setChatState(prev => ({ ...prev, playerImageUrl: imageUrl, step: "generating" }))
-    
-    await addBotMessage(
-      "Perfeito! Foto recebida. ✅",
-      1000
-    )
-    
+
+    setChatState((prev) => ({
+      ...prev,
+      playerImageUrl: imageUrl,
+      step: "generating",
+    }))
+
+    await addBotMessage("Perfeito! Foto recebida. ✅", 1000)
+
     // Show the uploaded image
     addMessage({
       type: "bot",
       content: isNewPhoto ? "Nova foto:" : "Sua foto:",
       imageUrl: imageUrl,
     })
-    
-    await addBotMessage(
-      "Uma foto incrível para você está sendo criada",
-      1500
-    )
+
+    await addBotMessage("Uma foto incrível para você está sendo criada", 1500)
 
     // Generate image immediately
     try {
@@ -140,31 +143,33 @@ export function ChatInterface() {
 
       if (data.success) {
         const generatedImageUrl = `data:image/png;base64,${data.imageBase64}`
-        setChatState(prev => ({ 
-          ...prev, 
+        setChatState((prev) => ({
+          ...prev,
           generatedImageUrl,
-          step: "completed" 
+          step: "completed",
         }))
-        
+
         await addBotMessage("Pronto! Aqui está sua imagem personalizada:", 1000)
-        
+
         addMessage({
           type: "bot",
-          content: "Você pode clicar na imagem para ver em tamanho completo em uma nova aba.",
+          content:
+            "Você pode clicar na imagem para ver em tamanho completo em uma nova aba.",
           imageUrl: generatedImageUrl,
         })
-        
+
         await addBotMessage("Quer subir outra foto?", 1500)
       } else {
         throw new Error(data.error)
       }
     } catch (error) {
       console.error("Error generating image:", error)
-      await addBotMessage("Ops! Houve um erro ao gerar a imagem. Tente novamente mais tarde.")
+      await addBotMessage(
+        "Ops! Houve um erro ao gerar a imagem. Tente novamente mais tarde."
+      )
       toast.error("Erro ao gerar imagem")
     }
   }
-
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -191,7 +196,7 @@ export function ChatInterface() {
               userName={chatState.userName}
             />
           ))}
-          
+
           {/* Upload areas */}
           {canShowPlayerUpload && (
             <div className="p-4">
@@ -201,7 +206,7 @@ export function ChatInterface() {
               />
             </div>
           )}
-          
+
           {canShowNewPhotoOption && (
             <div className="p-4">
               <ChatImageUpload
@@ -226,10 +231,7 @@ export function ChatInterface() {
                 placeholder="Digite seu nome..."
                 className="flex-1"
               />
-              <Button 
-                onClick={handleNameSubmit}
-                disabled={!inputValue.trim()}
-              >
+              <Button onClick={handleNameSubmit} disabled={!inputValue.trim()}>
                 <Send className="h-4 w-4" />
               </Button>
             </div>

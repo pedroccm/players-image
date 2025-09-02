@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 import { useDropzone } from "react-dropzone"
-import { Upload, CheckCircle, XCircle, ExternalLink } from "lucide-react"
+import { toast } from "sonner"
+import { CheckCircle, ExternalLink, Upload, XCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { toast } from "sonner"
 
 interface UploadResult {
   type: "file" | "url"
@@ -94,13 +94,13 @@ export function UploadTest() {
       setResults([])
 
       const formData = new FormData()
-      
+
       if (image1File) {
         formData.append("image1File", image1File)
       } else if (image1Url) {
         formData.append("image1Url", image1Url)
       }
-      
+
       if (image2File) {
         formData.append("image2File", image2File)
       } else if (image2Url) {
@@ -108,7 +108,7 @@ export function UploadTest() {
       }
 
       console.log("Sending upload test request...")
-      
+
       const response = await fetch("/api/images/upload-test", {
         method: "POST",
         body: formData,
@@ -142,7 +142,7 @@ export function UploadTest() {
             {/* Image 1 */}
             <div className="space-y-4">
               <Label className="text-lg font-semibold">Image 1</Label>
-              
+
               <div
                 {...getRootProps1()}
                 className={`border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors ${
@@ -169,7 +169,9 @@ export function UploadTest() {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or</span>
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or
+                  </span>
                 </div>
               </div>
 
@@ -196,7 +198,7 @@ export function UploadTest() {
             {/* Image 2 */}
             <div className="space-y-4">
               <Label className="text-lg font-semibold">Image 2</Label>
-              
+
               <div
                 {...getRootProps2()}
                 className={`border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors ${
@@ -223,7 +225,9 @@ export function UploadTest() {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or</span>
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or
+                  </span>
                 </div>
               </div>
 
@@ -248,9 +252,12 @@ export function UploadTest() {
             </div>
           </div>
 
-          <Button 
-            onClick={handleUploadTest} 
-            disabled={isUploading || (!image1File && !image1Url && !image2File && !image2Url)}
+          <Button
+            onClick={handleUploadTest}
+            disabled={
+              isUploading ||
+              (!image1File && !image1Url && !image2File && !image2Url)
+            }
             className="w-full"
           >
             {isUploading ? "Testing Upload..." : "Test Upload to Supabase"}
@@ -264,7 +271,10 @@ export function UploadTest() {
               <CardContent>
                 <div className="space-y-3">
                   {results.map((result, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 border rounded"
+                    >
                       <div className="flex items-center gap-2">
                         {result.status === "success" ? (
                           <CheckCircle className="h-5 w-5 text-green-500" />
@@ -276,7 +286,9 @@ export function UploadTest() {
                             {result.type === "file" ? result.name : "URL"}
                           </p>
                           {result.error && (
-                            <p className="text-sm text-red-500">{result.error}</p>
+                            <p className="text-sm text-red-500">
+                              {result.error}
+                            </p>
                           )}
                         </div>
                       </div>

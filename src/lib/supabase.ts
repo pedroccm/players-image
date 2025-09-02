@@ -50,6 +50,6 @@ export async function convertFileToBase64(file: File): Promise<string> {
   // Convert File to ArrayBuffer then to Buffer for server-side processing
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
-  const base64 = buffer.toString('base64')
+  const base64 = buffer.toString("base64")
   return base64
 }

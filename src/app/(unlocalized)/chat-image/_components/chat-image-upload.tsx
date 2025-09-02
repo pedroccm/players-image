@@ -2,10 +2,8 @@
 
 import { useState } from "react"
 import { useDropzone } from "react-dropzone"
-import { Upload, Loader2, CheckCircle } from "lucide-react"
 import { toast } from "sonner"
-
-import { Button } from "@/components/ui/button"
+import { CheckCircle, Loader2, Upload } from "lucide-react"
 
 interface ChatImageUploadProps {
   onImageUploaded: (imageUrl: string) => void
@@ -13,15 +11,15 @@ interface ChatImageUploadProps {
   disabled?: boolean
 }
 
-export function ChatImageUpload({ onImageUploaded, label, disabled = false }: ChatImageUploadProps) {
+export function ChatImageUpload({
+  onImageUploaded,
+  label,
+  disabled = false,
+}: ChatImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null)
 
-  const {
-    getRootProps,
-    getInputProps,
-    isDragActive,
-  } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
       "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp"],
     },
@@ -33,10 +31,10 @@ export function ChatImageUpload({ onImageUploaded, label, disabled = false }: Ch
 
       try {
         setIsUploading(true)
-        
+
         const formData = new FormData()
         formData.append("image", file)
-        
+
         const response = await fetch("/api/chat-image/upload", {
           method: "POST",
           body: formData,
@@ -97,7 +95,9 @@ export function ChatImageUpload({ onImageUploaded, label, disabled = false }: Ch
             <Upload className="h-8 w-8 text-muted-foreground" />
             <div className="text-center">
               <p className="text-sm font-medium">
-                {isDragActive ? "Drop image here" : `Click or drag to upload ${label.toLowerCase()}`}
+                {isDragActive
+                  ? "Drop image here"
+                  : `Click or drag to upload ${label.toLowerCase()}`}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 PNG, JPG up to 10MB

@@ -33,14 +33,14 @@ function redirect(pathname: string, request: NextRequest) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  console.log('MIDDLEWARE:', pathname)
-  
+  console.log("MIDDLEWARE:", pathname)
+
   // Skip middleware for chat-image and photo-mix routes
-  if (pathname.startsWith('/chat-image') || pathname.startsWith('/photo-mix')) {
-    console.log('SKIPPING MIDDLEWARE FOR:', pathname)
+  if (pathname.startsWith("/chat-image") || pathname.startsWith("/photo-mix")) {
+    console.log("SKIPPING MIDDLEWARE FOR:", pathname)
     return NextResponse.next()
   }
-  
+
   const locale = getLocaleFromPathname(pathname)
   const pathnameWithoutLocale = ensureWithoutPrefix(pathname, `/${locale}`)
   const isNotPublic = !isPublicRoute(pathnameWithoutLocale)

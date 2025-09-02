@@ -1,8 +1,9 @@
 "use client"
 
+import { Download } from "lucide-react"
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Download } from "lucide-react"
 
 export interface ChatMessageProps {
   type: "bot" | "user"
@@ -13,13 +14,13 @@ export interface ChatMessageProps {
   isTyping?: boolean
 }
 
-export function ChatMessage({ 
-  type, 
-  content, 
-  timestamp, 
-  imageUrl, 
+export function ChatMessage({
+  type,
+  content,
+  timestamp,
+  imageUrl,
   userName,
-  isTyping = false 
+  isTyping = false,
 }: ChatMessageProps) {
   const isBot = type === "bot"
 
@@ -43,17 +44,21 @@ export function ChatMessage({
           </AvatarFallback>
         </Avatar>
       )}
-      
-      <div className={`flex-1 space-y-2 ${!isBot ? "ml-auto max-w-[80%]" : ""}`}>
-        <div className={`flex items-center gap-2 ${!isBot ? "justify-end" : ""}`}>
+
+      <div
+        className={`flex-1 space-y-2 ${!isBot ? "ml-auto max-w-[80%]" : ""}`}
+      >
+        <div
+          className={`flex items-center gap-2 ${!isBot ? "justify-end" : ""}`}
+        >
           {!isBot && userName && (
             <span className="text-sm font-medium">{userName}</span>
           )}
           {timestamp && (
             <span className="text-xs text-muted-foreground">
-              {timestamp.toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+              {timestamp.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
               })}
             </span>
           )}
@@ -63,18 +68,26 @@ export function ChatMessage({
           <div className="flex items-center gap-1 text-muted-foreground">
             <div className="flex gap-1">
               <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
-              <div className="w-2 h-2 bg-current rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 bg-current rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              <div
+                className="w-2 h-2 bg-current rounded-full animate-pulse"
+                style={{ animationDelay: "0.2s" }}
+              ></div>
+              <div
+                className="w-2 h-2 bg-current rounded-full animate-pulse"
+                style={{ animationDelay: "0.4s" }}
+              ></div>
             </div>
             <span className="text-sm ml-2">digitando...</span>
           </div>
         ) : (
           <>
-            <div className={`rounded-2xl px-4 py-2 max-w-fit ${
-              isBot 
-                ? "bg-white border text-foreground" 
-                : "bg-primary text-primary-foreground ml-auto"
-            }`}>
+            <div
+              className={`rounded-2xl px-4 py-2 max-w-fit ${
+                isBot
+                  ? "bg-white border text-foreground"
+                  : "bg-primary text-primary-foreground ml-auto"
+              }`}
+            >
               <p className="text-sm whitespace-pre-wrap">{content}</p>
             </div>
 
@@ -88,7 +101,7 @@ export function ChatMessage({
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
-                      window.open(imageUrl, '_blank', 'noopener,noreferrer')
+                      window.open(imageUrl, "_blank", "noopener,noreferrer")
                     }}
                     title="Clique para ver em tamanho completo"
                   />

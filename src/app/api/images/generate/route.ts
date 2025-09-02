@@ -1,5 +1,6 @@
-import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
+
+import type { NextRequest } from "next/server"
 
 import { generateImage } from "@/lib/aiml"
 import { convertFileToBase64, uploadImageToSupabase } from "@/lib/supabase"
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
     console.log("Generating image with:", {
       prompt,
       imageUrlsCount: imageUrls.length,
-      imageUrls: imageUrls.map(url => url.substring(0, 50) + "..."),
+      imageUrls: imageUrls.map((url) => url.substring(0, 50) + "..."),
     })
 
     // Generate image using AIML API

@@ -23,9 +23,7 @@ export default function ImagesPage() {
         </div>
         <div className="flex gap-3">
           <Button asChild variant="outline">
-            <Link href="/apps/images/test">
-              Test Upload
-            </Link>
+            <Link href="/apps/images/test">Test Upload</Link>
           </Button>
           <Button asChild>
             <Link href="/apps/images/create">

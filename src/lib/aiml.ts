@@ -85,12 +85,12 @@ export async function generateImage(
 
     const imageUrl = data.images[0].url
     console.log("Successfully generated image:", imageUrl)
-    
+
     // Download the image and convert to base64
     const imageResponse = await fetch(imageUrl)
     const imageBuffer = await imageResponse.arrayBuffer()
-    const base64 = Buffer.from(imageBuffer).toString('base64')
-    
+    const base64 = Buffer.from(imageBuffer).toString("base64")
+
     console.log("Image converted to base64, length:", base64.length)
     return base64
   } catch (error) {

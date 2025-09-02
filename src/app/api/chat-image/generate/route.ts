@@ -1,12 +1,14 @@
-import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
+
+import type { NextRequest } from "next/server"
 
 import { generateImage } from "@/lib/aiml"
 
 export async function POST(request: NextRequest) {
   console.log("=== CHAT IMAGE GENERATE API CALLED ===")
   try {
-    const { playerImageUrl, backgroundImageUrl, userName } = await request.json()
+    const { playerImageUrl, backgroundImageUrl, userName } =
+      await request.json()
 
     if (!playerImageUrl || !backgroundImageUrl) {
       return NextResponse.json(
@@ -36,9 +38,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error in chat image generation:", error)
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to generate image"
+        error:
+          error instanceof Error ? error.message : "Failed to generate image",
       },
       { status: 500 }
     )
