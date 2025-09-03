@@ -7,7 +7,7 @@ import { generateImage } from "@/lib/aiml"
 export async function POST(request: NextRequest) {
   console.log("=== CHAT IMAGE GENERATE API CALLED ===")
   try {
-    const { playerImageUrl, backgroundImageUrl, userName } =
+    const { playerImageUrl, backgroundImageUrl, userName, gameLocation } =
       await request.json()
 
     if (!playerImageUrl || !backgroundImageUrl) {
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const imageUrls = [playerImageUrl, backgroundImageUrl]
 
     // Generate image using AIML API
-    const imageBase64 = await generateImage(prompt, imageUrls)
+    const imageBase64 = await generateImage(prompt, imageUrls, userName, gameLocation)
 
     console.log("Image generated successfully for:", userName)
 

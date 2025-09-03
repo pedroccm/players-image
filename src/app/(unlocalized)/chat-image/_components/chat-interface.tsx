@@ -12,23 +12,25 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { ChatImageUpload } from "./chat-image-upload"
 import { ChatMessage } from "./chat-message"
 
-type ChatStep = "name" | "player-photo" | "generating" | "completed"
+type ChatStep = "name" | "player-photo" | "game-location" | "generating" | "completed"
 
 interface ChatState {
   step: ChatStep
   userName: string
   playerImageUrl: string
+  gameLocation: string
   generatedImageUrl: string
 }
 
 const FIXED_BACKGROUND_URL =
-  "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/temp-1756770236033-2.jpeg"
+  "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/freepik__an-abstract-digital-artwork-with-a-football-stadiu__46075.png"
 
 export function ChatInterface() {
   const [chatState, setChatState] = useState<ChatState>({
     step: "name",
     userName: "",
     playerImageUrl: "",
+    gameLocation: "",
     generatedImageUrl: "",
   })
 
@@ -113,7 +115,7 @@ export function ChatInterface() {
     setChatState((prev) => ({
       ...prev,
       playerImageUrl: imageUrl,
-      step: "generating",
+      step: isNewPhoto ? "game-location" : "game-location",
     }))
 
     await addBotMessage("Perfeito! Foto recebida. ✅", 1000)
@@ -125,17 +127,34 @@ export function ChatInterface() {
       imageUrl: imageUrl,
     })
 
-    await addBotMessage("Uma foto incrível para você está sendo criada", 1500)
+    await addBotMessage("Agora me diga o local do jogo:", 1500)
+  }
 
-    // Generate image immediately
+  const handleGameLocationSubmit = async () => {
+    if (!inputValue.trim()) return
+
+    const location = inputValue.trim()
+    addMessage({
+      type: "user",
+      content: location,
+      userName: chatState.userName,
+    })
+
+    setChatState((prev) => ({ ...prev, gameLocation: location, step: "generating" }))
+    setInputValue("")
+
+    await addBotMessage(`Local: ${location}! Uma foto incrível está sendo criada`, 1500)
+
+    // Generate image with location
     try {
       const response = await fetch("/api/chat-image/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          playerImageUrl: imageUrl,
+          playerImageUrl: chatState.playerImageUrl,
           backgroundImageUrl: FIXED_BACKGROUND_URL,
           userName: chatState.userName,
+          gameLocation: location,
         }),
       })
 
@@ -176,11 +195,14 @@ export function ChatInterface() {
       e.preventDefault()
       if (chatState.step === "name") {
         handleNameSubmit()
+      } else if (chatState.step === "game-location") {
+        handleGameLocationSubmit()
       }
     }
   }
 
-  const canShowInput = chatState.step === "name" && !isTyping
+  const canShowNameInput = chatState.step === "name" && !isTyping
+  const canShowLocationInput = chatState.step === "game-location" && !isTyping
   const canShowPlayerUpload = chatState.step === "player-photo" && !isTyping
   const canShowNewPhotoOption = chatState.step === "completed" && !isTyping
 
@@ -218,8 +240,8 @@ export function ChatInterface() {
         </div>
       </ScrollArea>
 
-      {/* Input Area */}
-      {canShowInput && (
+      {/* Input Area - Name */}
+      {canShowNameInput && (
         <div className="border-t p-4 bg-background/95 backdrop-blur">
           <div className="max-w-4xl mx-auto">
             <div className="flex gap-3">
@@ -232,6 +254,27 @@ export function ChatInterface() {
                 className="flex-1"
               />
               <Button onClick={handleNameSubmit} disabled={!inputValue.trim()}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Input Area - Game Location */}
+      {canShowLocationInput && (
+        <div className="border-t p-4 bg-background/95 backdrop-blur">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex gap-3">
+              <Input
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Digite o local do jogo..."
+                className="flex-1"
+              />
+              <Button onClick={handleGameLocationSubmit} disabled={!inputValue.trim()}>
                 <Send className="h-4 w-4" />
               </Button>
             </div>
