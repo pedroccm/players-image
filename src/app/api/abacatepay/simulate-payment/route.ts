@@ -11,7 +11,7 @@ if (!ABACATEPAY_API_KEY) {
 
 export async function POST(request: NextRequest) {
   console.log("🔥 === ABACATEPAY SIMULATE PAYMENT API CALLED ===")
-  
+
   try {
     const { paymentId } = await request.json()
     console.log("💳 Simulating payment for ID:", paymentId)
@@ -23,23 +23,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const response = await fetch(`${ABACATEPAY_BASE_URL}/pixQrCode/simulate-payment?id=${paymentId}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${ABACATEPAY_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        metadata: {}
-      }),
-    })
+    const response = await fetch(
+      `${ABACATEPAY_BASE_URL}/pixQrCode/simulate-payment?id=${paymentId}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${ABACATEPAY_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          metadata: {},
+        }),
+      }
+    )
 
     console.log("📡 AbacatePay simulate response status:", response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
       console.error("❌ AbacatePay simulate error response:", errorText)
-      throw new Error(`Failed to simulate PIX payment: ${response.status} - ${errorText}`)
+      throw new Error(
+        `Failed to simulate PIX payment: ${response.status} - ${errorText}`
+      )
     }
 
     const data = await response.json()
@@ -54,7 +59,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to simulate PIX payment",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to simulate PIX payment",
       },
       { status: 500 }
     )

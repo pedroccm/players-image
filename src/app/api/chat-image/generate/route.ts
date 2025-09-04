@@ -7,8 +7,14 @@ import { generateImage } from "@/lib/aiml"
 export async function POST(request: NextRequest) {
   console.log("=== CHAT IMAGE GENERATE API CALLED ===")
   try {
-    const { playerImageUrl, backgroundImageUrl, userName, gameLocation, gameDateTime, hasPremium } =
-      await request.json()
+    const {
+      playerImageUrl,
+      backgroundImageUrl,
+      userName,
+      gameLocation,
+      gameDateTime,
+      hasPremium,
+    } = await request.json()
 
     if (!playerImageUrl || !backgroundImageUrl) {
       return NextResponse.json(
@@ -47,23 +53,25 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error in chat image generation:", error)
-    
+
     // Check if it's a 422 content policy error
-    if (error instanceof Error && error.message.includes('422')) {
+    if (error instanceof Error && error.message.includes("422")) {
       console.log("🚫 Content policy violation detected")
       return NextResponse.json({
         success: false,
         error: "content_blocked",
-        message: "Essa foto não pôde ser processada devido às políticas de conteúdo. Por favor, envie outra foto."
+        message:
+          "Essa foto não pôde ser processada devido às políticas de conteúdo. Por favor, envie outra foto.",
       })
     }
-    
+
     // Other errors
     return NextResponse.json(
       {
         success: false,
         error: "generation_failed",
-        message: error instanceof Error ? error.message : "Failed to generate image",
+        message:
+          error instanceof Error ? error.message : "Failed to generate image",
       },
       { status: 500 }
     )

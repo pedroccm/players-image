@@ -11,7 +11,7 @@ if (!ABACATEPAY_API_KEY) {
 
 export async function POST(request: NextRequest) {
   console.log("🔥 === ABACATEPAY CREATE QR CODE API CALLED ===")
-  
+
   try {
     const { userName } = await request.json()
     console.log("👤 Creating QR Code for user:", userName)
@@ -21,9 +21,12 @@ export async function POST(request: NextRequest) {
       description: `Pagamento Player.CX - ${userName}`,
       expiresIn: 900, // 15 minutos
     }
-    
+
     console.log("📋 Request body:", requestBody)
-    console.log("🔑 Using API key:", ABACATEPAY_API_KEY.substring(0, 10) + "...")
+    console.log(
+      "🔑 Using API key:",
+      ABACATEPAY_API_KEY.substring(0, 10) + "..."
+    )
 
     const response = await fetch(`${ABACATEPAY_BASE_URL}/pixQrCode/create`, {
       method: "POST",
@@ -39,7 +42,9 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text()
       console.error("❌ AbacatePay error response:", errorText)
-      throw new Error(`Failed to create PIX QR Code: ${response.status} - ${errorText}`)
+      throw new Error(
+        `Failed to create PIX QR Code: ${response.status} - ${errorText}`
+      )
     }
 
     const data = await response.json()
@@ -54,7 +59,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to create PIX QR Code",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create PIX QR Code",
       },
       { status: 500 }
     )

@@ -41,11 +41,11 @@ export async function generateTextImage(
     })
 
     const url = `${LETTER_IMAGE_API_URL}?${params.toString()}`
-    console.log("📡 Letter-Image API Request:", { 
-      text, 
-      font, 
+    console.log("📡 Letter-Image API Request:", {
+      text,
+      font,
       backgroundColor,
-      url: url.substring(0, 100) + "..." 
+      url: url.substring(0, 100) + "...",
     })
 
     const response = await fetch(url, {
@@ -64,7 +64,7 @@ export async function generateTextImage(
     const imageBuffer = Buffer.from(await response.arrayBuffer())
     console.log("✅ Text image generated successfully:", {
       size: imageBuffer.length,
-      contentType: response.headers.get("content-type")
+      contentType: response.headers.get("content-type"),
     })
 
     return {

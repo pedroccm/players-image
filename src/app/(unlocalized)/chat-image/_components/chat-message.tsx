@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Download, Copy, CheckCircle } from "lucide-react"
 import { toast } from "sonner"
+import { CheckCircle, Copy, Download } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -82,7 +82,10 @@ export function ChatMessage({
             <span className="text-sm font-medium">{userName}</span>
           )}
           {timestamp && (
-            <span className="text-xs text-muted-foreground" suppressHydrationWarning>
+            <span
+              className="text-xs text-muted-foreground"
+              suppressHydrationWarning
+            >
               {timestamp.toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -160,9 +163,9 @@ export function ChatMessage({
                   {/* QR Code */}
                   <div className="flex justify-center">
                     <div className="bg-white p-3 rounded-lg border">
-                      <img 
-                        src={pixData.qrCodeImage} 
-                        alt="QR Code PIX" 
+                      <img
+                        src={pixData.qrCodeImage}
+                        alt="QR Code PIX"
                         className="w-48 h-48"
                       />
                     </div>

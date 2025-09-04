@@ -9,9 +9,9 @@ import type { ChatMessageProps } from "./chat-message"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { BackgroundSelector } from "./background-selector"
 import { ChatImageUpload } from "./chat-image-upload"
 import { ChatMessage } from "./chat-message"
-import { BackgroundSelector } from "./background-selector"
 
 type ChatStep =
   | "name"
@@ -38,10 +38,10 @@ interface ChatState {
 
 const BACKGROUND_OPTIONS = [
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg.png",
-  "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg1.png", 
+  "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg1.png",
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg2.png",
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg3.png",
-  "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg4.png"
+  "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg4.png",
 ]
 
 export function ChatInterface() {
@@ -105,7 +105,6 @@ export function ChatInterface() {
     }
   }, [isInitialized])
 
-
   const addMessage = (message: Omit<ChatMessageProps, "timestamp">) => {
     setMessages((prev) => [...prev, { ...message, timestamp: new Date() }])
   }
@@ -166,7 +165,10 @@ export function ChatInterface() {
       imageUrl: imageUrl,
     })
 
-    await addBotMessage("Agora escolha o fundo que você quer para sua imagem:", 1500)
+    await addBotMessage(
+      "Agora escolha o fundo que você quer para sua imagem:",
+      1500
+    )
   }
 
   const handleBackgroundSelected = async (backgroundUrl: string) => {
@@ -197,7 +199,10 @@ export function ChatInterface() {
     }))
     setInputValue("")
 
-    await addBotMessage(`Local: ${location}! Agora me diga a data e horário do jogo:`, 1500)
+    await addBotMessage(
+      `Local: ${location}! Agora me diga a data e horário do jogo:`,
+      1500
+    )
   }
 
   const handleGameDateTimeSubmit = async () => {
@@ -270,17 +275,21 @@ export function ChatInterface() {
         // Handle content blocked error specifically
         if (data.error === "content_blocked") {
           console.log("🚫 Content blocked - resetting to photo upload")
-          
+
           setChatState((prev) => ({
             ...prev,
             step: "player-photo",
             playerImageUrl: "", // Clear the blocked image
           }))
-          
-          await addBotMessage(data.message || "Essa foto não pôde ser processada. Por favor, envie outra foto.", 1000)
+
+          await addBotMessage(
+            data.message ||
+              "Essa foto não pôde ser processada. Por favor, envie outra foto.",
+            1000
+          )
           return // Don't throw error, just reset flow
         }
-        
+
         throw new Error(data.message || data.error)
       }
     } catch (error) {
@@ -330,7 +339,9 @@ export function ChatInterface() {
       }
     } catch (error) {
       console.error("Error creating payment:", error)
-      await addBotMessage("Ops! Houve um erro ao criar o pagamento. Tente novamente.")
+      await addBotMessage(
+        "Ops! Houve um erro ao criar o pagamento. Tente novamente."
+      )
       toast.error("Erro ao criar pagamento")
     }
   }
@@ -362,7 +373,10 @@ export function ChatInterface() {
       const data = await response.json()
 
       if (data.success) {
-        await addBotMessage("✅ Pagamento simulado com sucesso! Agora clique em 'Pagamento Concluído' para verificar.", 1000)
+        await addBotMessage(
+          "✅ Pagamento simulado com sucesso! Agora clique em 'Pagamento Concluído' para verificar.",
+          1000
+        )
       } else {
         throw new Error(data.error)
       }
@@ -377,14 +391,19 @@ export function ChatInterface() {
     try {
       await addBotMessage("Verificando pagamento...", 500)
 
-      const response = await fetch(`/api/abacatepay/check-payment?id=${paymentId}`)
+      const response = await fetch(
+        `/api/abacatepay/check-payment?id=${paymentId}`
+      )
       const data = await response.json()
 
       if (data.success) {
         if (data.data.status === "PAID") {
           await handlePaymentCompleted()
         } else {
-          await addBotMessage(`❌ Pagamento ainda não confirmado. Status: ${data.data.status}`, 1000)
+          await addBotMessage(
+            `❌ Pagamento ainda não confirmado. Status: ${data.data.status}`,
+            1000
+          )
         }
       } else {
         throw new Error(data.error)
@@ -403,7 +422,10 @@ export function ChatInterface() {
       hasPremium: true,
     }))
 
-    await addBotMessage("🎉 Pagamento confirmado! Parabéns, agora você tem acesso premium!", 1000)
+    await addBotMessage(
+      "🎉 Pagamento confirmado! Parabéns, agora você tem acesso premium!",
+      1000
+    )
     await addBotMessage("Gerando sua imagem premium sem marca d'água...", 1500)
 
     // Regenerate image without watermark
@@ -425,14 +447,17 @@ export function ChatInterface() {
 
       if (data.success) {
         const premiumImageUrl = `data:image/png;base64,${data.imageBase64}`
-        
+
         // Update state with premium image
         setChatState((prev) => ({
           ...prev,
           generatedImageUrl: premiumImageUrl,
         }))
 
-        await addBotMessage("Aqui está sua imagem premium em alta resolução:", 1000)
+        await addBotMessage(
+          "Aqui está sua imagem premium em alta resolução:",
+          1000
+        )
 
         // Show the premium image without watermark
         addMessage({
@@ -447,8 +472,10 @@ export function ChatInterface() {
       }
     } catch (error) {
       console.error("Error generating premium image:", error)
-      await addBotMessage("❌ Erro ao gerar imagem premium. Mostrando a versão anterior.")
-      
+      await addBotMessage(
+        "❌ Erro ao gerar imagem premium. Mostrando a versão anterior."
+      )
+
       // Fallback to showing the original image
       addMessage({
         type: "bot",
@@ -482,21 +509,32 @@ export function ChatInterface() {
     )
   }
 
-  const canShowNameInput = chatState.step === "name" && !isTyping && isInitialized
-  const canShowLocationInput = chatState.step === "game-location" && !isTyping && isInitialized
-  const canShowDateTimeInput = chatState.step === "game-datetime" && !isTyping && isInitialized
-  const canShowPlayerUpload = chatState.step === "player-photo" && !isTyping && isInitialized
-  const canShowBackgroundSelection = chatState.step === "background-selection" && !isTyping && isInitialized
+  const canShowNameInput =
+    chatState.step === "name" && !isTyping && isInitialized
+  const canShowLocationInput =
+    chatState.step === "game-location" && !isTyping && isInitialized
+  const canShowDateTimeInput =
+    chatState.step === "game-datetime" && !isTyping && isInitialized
+  const canShowPlayerUpload =
+    chatState.step === "player-photo" && !isTyping && isInitialized
+  const canShowBackgroundSelection =
+    chatState.step === "background-selection" && !isTyping && isInitialized
   const canShowNewPhotoOption =
     (chatState.step === "completed" ||
       chatState.step === "payment-completed") &&
-    !isTyping && isInitialized
-  const canShowPaymentButtons = chatState.step === "payment-offer" && !isTyping && isInitialized
+    !isTyping &&
+    isInitialized
+  const canShowPaymentButtons =
+    chatState.step === "payment-offer" && !isTyping && isInitialized
 
   return (
     <div className="flex flex-col h-full" suppressHydrationWarning>
       {/* Messages */}
-      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4" suppressHydrationWarning>
+      <ScrollArea
+        ref={scrollAreaRef}
+        className="flex-1 p-4"
+        suppressHydrationWarning
+      >
         <div className="space-y-4 max-w-4xl mx-auto" suppressHydrationWarning>
           {messages.map((message, index) => (
             <ChatMessage
@@ -631,7 +669,6 @@ export function ChatInterface() {
           </div>
         </div>
       )}
-
     </div>
   )
 }
