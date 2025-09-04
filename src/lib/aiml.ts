@@ -334,7 +334,10 @@ async function applyLogosToImage(
     return finalResult.toString("base64")
   } catch (error) {
     console.error("❌ ERROR applying logos and text:", error)
-    console.error("❌ Error stack:", error instanceof Error ? error.stack : 'No stack trace')
+    console.error(
+      "❌ Error stack:",
+      error instanceof Error ? error.stack : "No stack trace"
+    )
     // Return original image if processing fails
     return base64Image
   }
