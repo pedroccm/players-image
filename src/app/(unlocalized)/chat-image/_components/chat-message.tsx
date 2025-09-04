@@ -57,7 +57,7 @@ export function ChatMessage({
       setCopied(true)
       toast.success("Código PIX copiado!")
       setTimeout(() => setCopied(false), 2000)
-    } catch (error) {
+    } catch (_error) {
       toast.error("Erro ao copiar código")
     }
   }

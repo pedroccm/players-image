@@ -141,9 +141,9 @@ export function PaymentModal({
             <div className="flex justify-center">
               <div className="bg-white p-4 rounded-lg border">
                 {paymentData.qrCodeImage ? (
-                  <img 
-                    src={paymentData.qrCodeImage} 
-                    alt="QR Code PIX" 
+                  <img
+                    src={paymentData.qrCodeImage}
+                    alt="QR Code PIX"
                     className="w-48 h-48"
                   />
                 ) : (

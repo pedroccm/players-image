@@ -6,7 +6,6 @@ import sharp from "sharp"
 import {
   generateGameDateTimeImage,
   generateGameLocationImage,
-  generateUserNameImage,
 } from "./text-to-image"
 
 // Note: Agharti font is now handled by Letter-Image API
@@ -291,8 +290,8 @@ async function applyLogosToImage(
         console.log("🔍 Watermark path:", watermarkPath)
 
         // Check if watermark exists
-        const fs = require("fs")
-        if (!fs.existsSync(watermarkPath)) {
+        const { existsSync } = await import("fs")
+        if (!existsSync(watermarkPath)) {
           throw new Error(`Watermark file not found at: ${watermarkPath}`)
         }
 

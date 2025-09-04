@@ -62,7 +62,9 @@ export function ChatInterface() {
   const [mounted, setMounted] = useState(false)
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const [paymentPollingId, setPaymentPollingId] = useState<string | null>(null)
+  const [_paymentPollingId, _setPaymentPollingId] = useState<string | null>(
+    null
+  )
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 

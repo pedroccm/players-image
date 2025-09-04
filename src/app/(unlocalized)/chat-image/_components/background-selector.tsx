@@ -65,8 +65,7 @@ export function BackgroundSelector({
       </div>
       {selectedBackground && (
         <p className="text-sm text-gray-600 text-center mt-3">
-          Fundo selecionado! Clique em &ldquo;Continuar&rdquo; para
-          prosseguir.
+          Fundo selecionado! Clique em &ldquo;Continuar&rdquo; para prosseguir.
         </p>
       )}
     </div>
