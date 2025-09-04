@@ -55,11 +55,13 @@ export function ChatMessage({
             <span className="text-sm font-medium">{userName}</span>
           )}
           {timestamp && (
-            <span className="text-xs text-muted-foreground">
-              {timestamp.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+            <span className="text-xs text-muted-foreground" suppressHydrationWarning>
+              {typeof window !== "undefined" 
+                ? timestamp.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : ""}
             </span>
           )}
         </div>

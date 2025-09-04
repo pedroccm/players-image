@@ -1,18 +1,14 @@
+import path from "path"
+
 import { OpenAI } from "openai"
 import sharp from "sharp"
-import path from "path"
-import fs from "fs"
 
-// Load and encode custom font
-let aghartiBase64: string | null = null
-try {
-  const fontPath = path.join(process.cwd(), "public", "fonts", "AghartiVF.ttf")
-  const fontBuffer = fs.readFileSync(fontPath)
-  aghartiBase64 = fontBuffer.toString('base64')
-  console.log("Agharti font loaded successfully")
-} catch (error) {
-  console.warn("Could not load Agharti font:", error)
-}
+import {
+  generateGameLocationImage,
+  generateUserNameImage,
+} from "./text-to-image"
+
+// Note: Agharti font is now handled by Letter-Image API
 
 export const aimlClient = new OpenAI({
   baseURL: "https://api.aimlapi.com/v1",
@@ -48,92 +44,145 @@ export interface ImageGenerationResponse {
   }
 }
 
-async function applyLogosToImage(base64Image: string, userName?: string, gameLocation?: string): Promise<string> {
+async function applyLogosToImage(
+  base64Image: string,
+  userName?: string,
+  gameLocation?: string
+): Promise<string> {
+  console.log("🎨 === STARTING OVERLAY APPLICATION ===")
+  console.log("📊 Input parameters:", { userName, gameLocation, imageLength: base64Image.length })
+  
   try {
     // Convert base64 to buffer
     const imageBuffer = Buffer.from(base64Image, "base64")
-    
+
     // Load the main image
-    let mainImage = sharp(imageBuffer)
+    const mainImage = sharp(imageBuffer)
     const { width, height } = await mainImage.metadata()
-    
+
+    console.log("📐 Main image dimensions:", { width, height })
+
     if (!width || !height) {
       throw new Error("Could not get image dimensions")
     }
+
+    // Add [Image #1] overlay - escudos-shape.png at 50% size
+    const escudosShapePath = path.join(
+      process.cwd(),
+      "public",
+      "images", 
+      "escudos-shape.png"
+    )
     
+    // Get original dimensions of escudos-shape.png and resize to fit image width
+    const escudosMetadata = await sharp(escudosShapePath).metadata()
+    const maxEscudosWidth = Math.floor(width * 0.8) // 80% of main image width
+    const aspectRatio = escudosMetadata.height / escudosMetadata.width
+    const escudosWidth = maxEscudosWidth
+    const escudosHeight = Math.floor(maxEscudosWidth * aspectRatio)
+    
+    console.log("🖼️ [Image #1] escudos-shape dimensions:", {
+      original: `${escudosMetadata.width}x${escudosMetadata.height}`,
+      resized: `${escudosWidth}x${escudosHeight}`,
+      maxWidth: maxEscudosWidth
+    })
+    
+    const escudosShape = await sharp(escudosShapePath)
+      .resize(escudosWidth, escudosHeight, {
+        fit: "contain",
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
+      .png()
+      .toBuffer()
+
     // Logo paths
-    const portuguesaLogoPath = path.join(process.cwd(), "public", "images", "portuguesa.png")
-    const spfcLogoPath = path.join(process.cwd(), "public", "images", "spfc.png")
-    
+    const portuguesaLogoPath = path.join(
+      process.cwd(),
+      "public",
+      "images",
+      "portuguesa.png"
+    )
+    const spfcLogoPath = path.join(
+      process.cwd(),
+      "public",
+      "images",
+      "spfc.png"
+    )
+
+    console.log("🏆 Loading logos:", {
+      portuguesa: portuguesaLogoPath,
+      spfc: spfcLogoPath
+    })
+
     // Calculate logo size (10% of image width)
     const logoSize = Math.floor(width * 0.1)
-    
+    console.log("📏 Logo size calculated:", logoSize, "px")
+
     // Resize logos
     const portuguesaLogo = await sharp(portuguesaLogoPath)
-      .resize(logoSize, logoSize, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .resize(logoSize, logoSize, {
+        fit: "contain",
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
       .png()
       .toBuffer()
-      
+
     const spfcLogo = await sharp(spfcLogoPath)
-      .resize(logoSize, logoSize, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .resize(logoSize, logoSize, {
+        fit: "contain",
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
       .png()
       .toBuffer()
-    
-    // Create text overlays using SVG
-    let textOverlays = []
-    
-    // Add userName text if provided
-    if (userName) {
-      const userNameSvg = `
-      <svg width="${width}" height="100">
-        <text x="50%" y="70" text-anchor="middle" 
-              font-family="Arial" font-size="48" font-weight="bold" 
-              fill="white" stroke="black" stroke-width="3">
-          ${userName}
-        </text>
-      </svg>`
-      
-      textOverlays.push({
-        input: Buffer.from(userNameSvg),
-        top: height - 150, // 150px from bottom
-        left: 0,
-      })
-    }
-    
-    // Add gameLocation text if provided  
+
+    console.log("✅ Logos processed successfully:", {
+      portuguesaSize: portuguesaLogo.length,
+      spfcSize: spfcLogo.length
+    })
+
+    // Generate text overlays using Letter-Image API
+    const textOverlays = []
+
+    // Username text removed - only show game location
+
+    // Add gameLocation text if provided
     if (gameLocation) {
-      const fontDef = aghartiBase64 
-        ? `<defs>
-             <style>
-               @font-face {
-                 font-family: 'Agharti';
-                 src: url(data:font/truetype;charset=utf-8;base64,${aghartiBase64}) format('truetype');
-               }
-             </style>
-           </defs>`
-        : '';
-        
-      const fontFamily = aghartiBase64 ? 'Agharti' : 'Arial';
-      
-      const gameLocationSvg = `
-      <svg width="${width}" height="80">
-        ${fontDef}
-        <text x="50%" y="50" text-anchor="middle" 
-              font-family="${fontFamily}" font-size="36" 
-              fill="white" stroke="black" stroke-width="2">
-          ${gameLocation}
-        </text>
-      </svg>`
-      
+      console.log(
+        "📍 Generating game location image via Letter-Image API:",
+        gameLocation
+      )
+      const gameLocationImageData =
+        await generateGameLocationImage(gameLocation)
+
+      // Resize to fit image width and position at bottom center (no username anymore)
+      const resizedGameLocationImage = await sharp(
+        gameLocationImageData.imageBuffer
+      )
+        .resize(width, 120, { // Increased height for 72px font
+          fit: "contain",
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        })
+        .png()
+        .toBuffer()
+
       textOverlays.push({
-        input: Buffer.from(gameLocationSvg),
-        top: userName ? height - 220 : height - 120, // Above userName if exists, 120px from bottom if not
+        input: resizedGameLocationImage,
+        top: height - 150, // Bottom position (no username to avoid)
         left: 0,
       })
+
+      console.log("📍 Game location text positioned at bottom")
     }
-    
-    // Apply logos with corrected positions: top right and top left
+
+    // Apply logos and text overlays (no background image)
     const composite = [
+      // [Image #1] escudos-shape at 50% size
+      {
+        input: escudosShape,
+        top: Math.min(1000, height - escudosHeight - 50), // Max 1000px or fit in image
+        left: Math.floor((width - escudosWidth) / 2), // Centered
+      },
+      // Logos
       {
         input: portuguesaLogo,
         top: 30, // Top
@@ -144,18 +193,27 @@ async function applyLogosToImage(base64Image: string, userName?: string, gameLoc
         top: 30, // Top
         left: width - logoSize - 30, // Right
       },
-      ...textOverlays
+      // Text overlays
+      ...textOverlays,
     ]
+
+    console.log("🎯 Compositing final image with", composite.length, "overlays")
+    console.log("🎯 Composite array:", composite.map(c => ({ 
+      hasInput: !!c.input, 
+      top: c.top, 
+      left: c.left 
+    })))
     
-    const result = await mainImage
-      .composite(composite)
-      .png()
-      .toBuffer()
-    
+    const result = await mainImage.composite(composite).png().toBuffer()
+
+    console.log("✅ Overlay application completed successfully!")
+    console.log("📊 Final image size:", result.length, "bytes")
+
     // Convert back to base64
     return result.toString("base64")
   } catch (error) {
-    console.error("Error applying logos and text:", error)
+    console.error("❌ ERROR applying logos and text:", error)
+    console.error("❌ Error stack:", error.stack)
     // Return original image if processing fails
     return base64Image
   }
@@ -167,6 +225,9 @@ export async function generateImage(
   userName?: string,
   gameLocation?: string
 ): Promise<string> {
+  console.log("🚀 === GENERATE IMAGE CALLED ===")
+  console.log("📋 Parameters:", { userName, gameLocation, imageCount: imageUrls.length })
+  
   try {
     console.log("Making request to AIML API with:", {
       model: "google/gemini-2.5-flash-image-edit",
@@ -221,12 +282,15 @@ export async function generateImage(
     const base64 = Buffer.from(imageBuffer).toString("base64")
 
     console.log("Image converted to base64, length:", base64.length)
-    
+
     // Apply logos and text to the generated image
     console.log("Applying logos and text to generated image...")
     const finalBase64 = await applyLogosToImage(base64, userName, gameLocation)
-    console.log("Logos and text applied successfully, final image length:", finalBase64.length)
-    
+    console.log(
+      "Logos and text applied successfully, final image length:",
+      finalBase64.length
+    )
+
     return finalBase64
   } catch (error) {
     console.error("Error generating image:", error)

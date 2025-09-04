@@ -26,7 +26,12 @@ export async function POST(request: NextRequest) {
     const imageUrls = [playerImageUrl, backgroundImageUrl]
 
     // Generate image using AIML API
-    const imageBase64 = await generateImage(prompt, imageUrls, userName, gameLocation)
+    const imageBase64 = await generateImage(
+      prompt,
+      imageUrls,
+      userName,
+      gameLocation
+    )
 
     console.log("Image generated successfully for:", userName)
 

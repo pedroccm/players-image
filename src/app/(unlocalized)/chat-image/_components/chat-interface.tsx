@@ -11,8 +11,16 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ChatImageUpload } from "./chat-image-upload"
 import { ChatMessage } from "./chat-message"
+import { PaymentModal } from "./payment-modal"
 
-type ChatStep = "name" | "player-photo" | "game-location" | "generating" | "completed"
+type ChatStep =
+  | "name"
+  | "player-photo"
+  | "game-location"
+  | "generating"
+  | "completed"
+  | "payment-offer"
+  | "payment-completed"
 
 interface ChatState {
   step: ChatStep
@@ -20,31 +28,29 @@ interface ChatState {
   playerImageUrl: string
   gameLocation: string
   generatedImageUrl: string
+  hasPremium: boolean
 }
 
 const FIXED_BACKGROUND_URL =
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/freepik__an-abstract-digital-artwork-with-a-football-stadiu__46075.png"
 
 export function ChatInterface() {
+  // All hooks must be at the top - Rules of Hooks
   const [chatState, setChatState] = useState<ChatState>({
     step: "name",
     userName: "",
     playerImageUrl: "",
     gameLocation: "",
     generatedImageUrl: "",
+    hasPremium: false,
   })
 
-  const [messages, setMessages] = useState<ChatMessageProps[]>([
-    {
-      type: "bot",
-      content:
-        "Olá! Vou te ajudar a criar uma imagem personalizada. Qual o seu nome?",
-      timestamp: new Date(),
-    },
-  ])
-
+  const [messages, setMessages] = useState<ChatMessageProps[]>([])
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -66,6 +72,26 @@ export function ChatInterface() {
       inputRef.current.focus()
     }
   }, [isTyping])
+
+  // Ensure client-side only rendering
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Initialize messages on client side to avoid hydration mismatch
+  useEffect(() => {
+    if (mounted && !isInitialized) {
+      setMessages([
+        {
+          type: "bot",
+          content:
+            "Olá! Vou te ajudar a criar uma imagem personalizada. Qual o seu nome?",
+          timestamp: new Date(),
+        },
+      ])
+      setIsInitialized(true)
+    }
+  }, [mounted, isInitialized])
 
   const addMessage = (message: Omit<ChatMessageProps, "timestamp">) => {
     setMessages((prev) => [...prev, { ...message, timestamp: new Date() }])
@@ -140,10 +166,17 @@ export function ChatInterface() {
       userName: chatState.userName,
     })
 
-    setChatState((prev) => ({ ...prev, gameLocation: location, step: "generating" }))
+    setChatState((prev) => ({
+      ...prev,
+      gameLocation: location,
+      step: "generating",
+    }))
     setInputValue("")
 
-    await addBotMessage(`Local: ${location}! Uma foto incrível está sendo criada`, 1500)
+    await addBotMessage(
+      `Local: ${location}! Uma foto incrível está sendo criada`,
+      1500
+    )
 
     // Generate image with location
     try {
@@ -178,6 +211,15 @@ export function ChatInterface() {
         })
 
         await addBotMessage("Quer subir outra foto?", 1500)
+
+        // Ask for payment after a short delay
+        setTimeout(async () => {
+          setChatState((prev) => ({ ...prev, step: "payment-offer" }))
+          await addBotMessage(
+            "💎 Quer desbloquear recursos premium por apenas R$ 3,00? Você terá acesso a filtros especiais e outras funcionalidades incríveis!",
+            2000
+          )
+        }, 3000)
       } else {
         throw new Error(data.error)
       }
@@ -188,6 +230,37 @@ export function ChatInterface() {
       )
       toast.error("Erro ao gerar imagem")
     }
+  }
+
+  const handlePaymentAccept = () => {
+    setShowPaymentModal(true)
+  }
+
+  const handlePaymentDecline = async () => {
+    addMessage({
+      type: "user",
+      content: "Não, obrigado",
+      userName: chatState.userName,
+    })
+
+    setChatState((prev) => ({ ...prev, step: "completed" }))
+    await addBotMessage(
+      "Tudo bem! Você ainda pode subir mais fotos quando quiser.",
+      1000
+    )
+  }
+
+  const handlePaymentCompleted = async () => {
+    setChatState((prev) => ({
+      ...prev,
+      step: "payment-completed",
+      hasPremium: true,
+    }))
+
+    await addBotMessage(
+      "🎉 Parabéns! Agora você tem acesso aos recursos premium! Continue explorando.",
+      1500
+    )
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -201,13 +274,28 @@ export function ChatInterface() {
     }
   }
 
-  const canShowNameInput = chatState.step === "name" && !isTyping
-  const canShowLocationInput = chatState.step === "game-location" && !isTyping
-  const canShowPlayerUpload = chatState.step === "player-photo" && !isTyping
-  const canShowNewPhotoOption = chatState.step === "completed" && !isTyping
+  // Don't render anything until mounted on client
+  if (!mounted) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    )
+  }
+
+  const canShowNameInput = chatState.step === "name" && !isTyping && isInitialized
+  const canShowLocationInput = chatState.step === "game-location" && !isTyping && isInitialized
+  const canShowPlayerUpload = chatState.step === "player-photo" && !isTyping && isInitialized
+  const canShowNewPhotoOption =
+    (chatState.step === "completed" ||
+      chatState.step === "payment-completed") &&
+    !isTyping && isInitialized
+  const canShowPaymentButtons = chatState.step === "payment-offer" && !isTyping && isInitialized
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" suppressHydrationWarning>
       {/* Messages */}
       <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
         <div className="space-y-4 max-w-4xl mx-auto">
@@ -235,6 +323,21 @@ export function ChatInterface() {
                 label="Nova Foto"
                 onImageUploaded={handlePlayerImageUploaded}
               />
+            </div>
+          )}
+
+          {/* Payment Buttons */}
+          {canShowPaymentButtons && (
+            <div className="p-4 flex gap-3 justify-center">
+              <Button
+                onClick={handlePaymentAccept}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                💳 Sim, quero premium!
+              </Button>
+              <Button variant="outline" onClick={handlePaymentDecline}>
+                Não, obrigado
+              </Button>
             </div>
           )}
         </div>
@@ -274,7 +377,10 @@ export function ChatInterface() {
                 placeholder="Digite o local do jogo..."
                 className="flex-1"
               />
-              <Button onClick={handleGameLocationSubmit} disabled={!inputValue.trim()}>
+              <Button
+                onClick={handleGameLocationSubmit}
+                disabled={!inputValue.trim()}
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
@@ -291,6 +397,14 @@ export function ChatInterface() {
           </div>
         </div>
       )}
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentCompleted={handlePaymentCompleted}
+        userName={chatState.userName}
+      />
     </div>
   )
 }
