@@ -225,7 +225,7 @@ export function ChatInterface() {
     setInputValue("")
 
     await addBotMessage(
-      `Data/Horário: ${dateTime}! Uma foto incrível está sendo criada`,
+      `Data/Horário: ${dateTime}!\nUma foto incrível está sendo criada`,
       1500
     )
 
