@@ -84,7 +84,8 @@ async function applyLogosToImage(
     // Get original dimensions of escudos-shape.png and resize to fixed width 500px
     const escudosMetadata = await sharp(escudosShapePath).metadata()
     const escudosWidth = 500 // Fixed width of 500px
-    const aspectRatio = (escudosMetadata.height || 300) / (escudosMetadata.width || 500)
+    const aspectRatio =
+      (escudosMetadata.height || 300) / (escudosMetadata.width || 500)
     const escudosHeight = Math.floor(escudosWidth * aspectRatio) // Proportional height
 
     console.log("🖼️ [Image #1] escudos-shape dimensions:", {
