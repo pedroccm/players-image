@@ -2,8 +2,12 @@ import { NextResponse } from "next/server"
 
 import type { NextRequest } from "next/server"
 
-const ABACATEPAY_API_KEY = "abc_dev_0rYdNbzadtdtd24Ks4SQMxsk"
-const ABACATEPAY_BASE_URL = "https://api.abacatepay.com"
+const ABACATEPAY_API_KEY = process.env.ABACATEPAY_API_KEY
+const ABACATEPAY_BASE_URL = "https://api.abacatepay.com/v1"
+
+if (!ABACATEPAY_API_KEY) {
+  throw new Error("ABACATEPAY_API_KEY is not defined in environment variables")
+}
 
 export async function GET(request: NextRequest) {
   try {

@@ -80,7 +80,7 @@ export async function generateTextImage(
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" style="background: transparent;">
       <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
             font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" 
-            fill="${textColor}" stroke="#000000" stroke-width="2">
+            fill="${textColor}" stroke="#FFFFFF" stroke-width="2">
         ${text}
       </text>
     </svg>`
@@ -121,7 +121,22 @@ export async function generateGameLocationImage(
     height: 120, // Increased height for larger font
     fontSize: 72, // Double the size: 36px -> 72px
     font: "Agharti-Bold.ttf", // Use bold variant
-    textColor: "#FFFFFF",
+    textColor: "#000000", // Changed to black
+    backgroundColor: "transparent",
+  })
+}
+
+export async function generateGameDateTimeImage(
+  gameDateTime: string
+): Promise<TextImageResponse> {
+  console.log("🕒 Generating game date/time image:", gameDateTime)
+  return generateTextImage({
+    text: gameDateTime,
+    width: 800,
+    height: 100, // Slightly smaller than location
+    fontSize: 60, // Slightly smaller font than location
+    font: "Agharti-Bold.ttf", // Use bold variant
+    textColor: "#000000", // Black text
     backgroundColor: "transparent",
   })
 }

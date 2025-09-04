@@ -5,6 +5,7 @@ import sharp from "sharp"
 
 import {
   generateGameLocationImage,
+  generateGameDateTimeImage,
   generateUserNameImage,
 } from "./text-to-image"
 
@@ -47,10 +48,12 @@ export interface ImageGenerationResponse {
 async function applyLogosToImage(
   base64Image: string,
   userName?: string,
-  gameLocation?: string
+  gameLocation?: string,
+  gameDateTime?: string,
+  hasPremium: boolean = false
 ): Promise<string> {
   console.log("🎨 === STARTING OVERLAY APPLICATION ===")
-  console.log("📊 Input parameters:", { userName, gameLocation, imageLength: base64Image.length })
+  console.log("📊 Input parameters:", { userName, gameLocation, gameDateTime, imageLength: base64Image.length })
   
   try {
     // Convert base64 to buffer
@@ -74,17 +77,16 @@ async function applyLogosToImage(
       "escudos-shape.png"
     )
     
-    // Get original dimensions of escudos-shape.png and resize to fit image width
+    // Get original dimensions of escudos-shape.png and resize to fixed width 500px
     const escudosMetadata = await sharp(escudosShapePath).metadata()
-    const maxEscudosWidth = Math.floor(width * 0.8) // 80% of main image width
+    const escudosWidth = 500 // Fixed width of 500px
     const aspectRatio = escudosMetadata.height / escudosMetadata.width
-    const escudosWidth = maxEscudosWidth
-    const escudosHeight = Math.floor(maxEscudosWidth * aspectRatio)
+    const escudosHeight = Math.floor(escudosWidth * aspectRatio) // Proportional height
     
     console.log("🖼️ [Image #1] escudos-shape dimensions:", {
       original: `${escudosMetadata.width}x${escudosMetadata.height}`,
       resized: `${escudosWidth}x${escudosHeight}`,
-      maxWidth: maxEscudosWidth
+      aspectRatio: aspectRatio
     })
     
     const escudosShape = await sharp(escudosShapePath)
@@ -146,6 +148,7 @@ async function applyLogosToImage(
     // Username text removed - only show game location
 
     // Add gameLocation text if provided
+    console.log("🔍 Checking gameLocation:", { gameLocation, hasValue: !!gameLocation })
     if (gameLocation) {
       console.log(
         "📍 Generating game location image via Letter-Image API:",
@@ -153,6 +156,12 @@ async function applyLogosToImage(
       )
       const gameLocationImageData =
         await generateGameLocationImage(gameLocation)
+      
+      console.log("📍 Game location image generated:", {
+        bufferSize: gameLocationImageData.imageBuffer.length,
+        width: gameLocationImageData.width,
+        height: gameLocationImageData.height
+      })
 
       // Resize to fit image width and position at bottom center (no username anymore)
       const resizedGameLocationImage = await sharp(
@@ -167,37 +176,78 @@ async function applyLogosToImage(
 
       textOverlays.push({
         input: resizedGameLocationImage,
-        top: height - 150, // Bottom position (no username to avoid)
-        left: 0,
+        top: 1065, // y: 1065 (5px up from 1070)
+        left: -110, // x: -110 (20px left from -90)
       })
 
       console.log("📍 Game location text positioned at bottom")
+      console.log("📍 textOverlays after adding location:", textOverlays.length)
+    }
+
+    // Add gameDateTime text if provided
+    console.log("🔍 Checking gameDateTime:", { gameDateTime, hasValue: !!gameDateTime })
+    if (gameDateTime) {
+      console.log(
+        "🕒 Generating game date/time image via Letter-Image API:",
+        gameDateTime
+      )
+      const gameDateTimeImageData =
+        await generateGameDateTimeImage(gameDateTime)
+      
+      console.log("🕒 Game date/time image generated:", {
+        bufferSize: gameDateTimeImageData.imageBuffer.length,
+        width: gameDateTimeImageData.width,
+        height: gameDateTimeImageData.height
+      })
+
+      // Resize to fit image width and position below location text
+      const resizedGameDateTimeImage = await sharp(
+        gameDateTimeImageData.imageBuffer
+      )
+        .resize(width, 100, { // Smaller height for datetime
+          fit: "contain",
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        })
+        .png()
+        .toBuffer()
+
+      textOverlays.push({
+        input: resizedGameDateTimeImage,
+        top: 1180, // y: 1180 (below location text)
+        left: -70, // x: -70 (same as location)
+      })
+
+      console.log("🕒 Game date/time text positioned below location")
+      console.log("🕒 textOverlays after adding datetime:", textOverlays.length)
+    } else {
+      console.log("❌ gameDateTime not provided or empty")
     }
 
     // Apply logos and text overlays (no background image)
     const composite = [
-      // [Image #1] escudos-shape at 50% size
+      // [Image #1] escudos-shape at fixed 500px width
       {
         input: escudosShape,
-        top: Math.min(1000, height - escudosHeight - 50), // Max 1000px or fit in image
-        left: Math.floor((width - escudosWidth) / 2), // Centered
+        top: 1050, // y: 1050
+        left: -15, // x: -15 (-5px)
       },
       // Logos
       {
         input: portuguesaLogo,
-        top: 30, // Top
-        left: 30, // Left
+        top: 1055, // y: 1055 (5px down from 1050)
+        left: 51, // x: 51 (-2px)
       },
       {
         input: spfcLogo,
-        top: 30, // Top
-        left: width - logoSize - 30, // Right
+        top: 1149, // y: 1149 (5px up from 1154)
+        left: 51, // x: 51 (-2px)
       },
       // Text overlays
       ...textOverlays,
     ]
 
     console.log("🎯 Compositing final image with", composite.length, "overlays")
+    console.log("🎯 Text overlays count:", textOverlays.length)
     console.log("🎯 Composite array:", composite.map(c => ({ 
       hasInput: !!c.input, 
       top: c.top, 
@@ -206,11 +256,66 @@ async function applyLogosToImage(
     
     const result = await mainImage.composite(composite).png().toBuffer()
 
-    console.log("✅ Overlay application completed successfully!")
-    console.log("📊 Final image size:", result.length, "bytes")
+    console.log("✅ Base composition completed successfully!")
+    
+    // Add watermark if not premium
+    let finalResult = result
+    if (!hasPremium) {
+      console.log("💧 Adding watermark for free version...")
+      
+      try {
+        // Load watermark
+        const watermarkPath = path.join(
+          process.cwd(),
+          "public",
+          "images",
+          "marcadagua.png"
+        )
+        
+        console.log("🔍 Watermark path:", watermarkPath)
+        
+        // Check if watermark exists
+        const fs = require('fs')
+        if (!fs.existsSync(watermarkPath)) {
+          throw new Error(`Watermark file not found at: ${watermarkPath}`)
+        }
+        
+        console.log("✅ Watermark file found, applying...")
+        
+        // Resize watermark to match image dimensions (100% coverage)
+        const watermarkBuffer = await sharp(watermarkPath)
+          .resize(width, height, {
+            fit: "fill"
+          })
+          .png()
+          .toBuffer()
+        
+        // Apply watermark at top-left corner (0,0) over everything
+        finalResult = await sharp(result)
+          .composite([
+            {
+              input: watermarkBuffer,
+              top: 0,
+              left: 0,
+            }
+          ])
+          .png()
+          .toBuffer()
+        
+        console.log("💧 Watermark applied successfully!")
+      } catch (watermarkError) {
+        console.error("❌ Error applying watermark:", watermarkError)
+        console.log("📦 Using image without watermark")
+        finalResult = result // Use original if watermark fails
+      }
+    } else {
+      console.log("💎 Premium user - no watermark applied")
+    }
+
+    console.log("📊 Final image size:", finalResult.length, "bytes")
 
     // Convert back to base64
-    return result.toString("base64")
+    return finalResult.toString("base64")
   } catch (error) {
     console.error("❌ ERROR applying logos and text:", error)
     console.error("❌ Error stack:", error.stack)
@@ -223,10 +328,17 @@ export async function generateImage(
   prompt: string,
   imageUrls: string[],
   userName?: string,
-  gameLocation?: string
+  gameLocation?: string,
+  gameDateTime?: string,
+  hasPremium: boolean = false
 ): Promise<string> {
   console.log("🚀 === GENERATE IMAGE CALLED ===")
-  console.log("📋 Parameters:", { userName, gameLocation, imageCount: imageUrls.length })
+  console.log("📋 Parameters:", { userName, gameLocation, gameDateTime, imageCount: imageUrls.length })
+  console.log("🔍 gameDateTime value check:", { 
+    hasGameDateTime: !!gameDateTime, 
+    gameDateTime, 
+    type: typeof gameDateTime 
+  })
   
   try {
     console.log("Making request to AIML API with:", {
@@ -285,7 +397,7 @@ export async function generateImage(
 
     // Apply logos and text to the generated image
     console.log("Applying logos and text to generated image...")
-    const finalBase64 = await applyLogosToImage(base64, userName, gameLocation)
+    const finalBase64 = await applyLogosToImage(base64, userName, gameLocation, gameDateTime, hasPremium)
     console.log(
       "Logos and text applied successfully, final image length:",
       finalBase64.length

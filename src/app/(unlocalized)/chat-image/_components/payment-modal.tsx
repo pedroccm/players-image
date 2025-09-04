@@ -18,6 +18,7 @@ interface PaymentData {
   id: string
   qrCodeText: string
   copyPasteText: string
+  qrCodeImage?: string
 }
 
 interface PaymentModalProps {
@@ -52,8 +53,9 @@ export function PaymentModal({
       if (data.success) {
         setPaymentData({
           id: data.data.id,
-          qrCodeText: data.data.qrCodeText,
-          copyPasteText: data.data.copyPasteText,
+          qrCodeText: data.data.brCode,
+          copyPasteText: data.data.brCode,
+          qrCodeImage: data.data.brCodeBase64,
         })
       } else {
         throw new Error(data.error)
@@ -138,7 +140,15 @@ export function PaymentModal({
             {/* QR Code */}
             <div className="flex justify-center">
               <div className="bg-white p-4 rounded-lg border">
-                <QRCodeSVG value={paymentData.qrCodeText} size={200} />
+                {paymentData.qrCodeImage ? (
+                  <img 
+                    src={paymentData.qrCodeImage} 
+                    alt="QR Code PIX" 
+                    className="w-48 h-48"
+                  />
+                ) : (
+                  <QRCodeSVG value={paymentData.qrCodeText} size={200} />
+                )}
               </div>
             </div>
 
