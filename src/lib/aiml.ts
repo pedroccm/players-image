@@ -10,9 +10,15 @@ import {
 
 // Note: Agharti font is now handled by Letter-Image API
 
+const AIML_API_KEY = process.env.AIML_API_KEY
+
+if (!AIML_API_KEY) {
+  throw new Error("AIML_API_KEY is not defined in environment variables")
+}
+
 export const aimlClient = new OpenAI({
   baseURL: "https://api.aimlapi.com/v1",
-  apiKey: "a2c4457ed6a14299a425dd670e5a8ad0",
+  apiKey: AIML_API_KEY,
 })
 
 export interface ImageGenerationRequest {
@@ -376,7 +382,7 @@ export async function generateImage(
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer a2c4457ed6a14299a425dd670e5a8ad0`,
+          Authorization: `Bearer ${AIML_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
