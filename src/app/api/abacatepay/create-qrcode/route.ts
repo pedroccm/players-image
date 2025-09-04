@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     console.log("📋 Request body:", requestBody)
     console.log(
       "🔑 Using API key:",
-      ABACATEPAY_API_KEY.substring(0, 10) + "..."
+      ABACATEPAY_API_KEY?.substring(0, 10) + "..."
     )
 
     const response = await fetch(`${ABACATEPAY_BASE_URL}/pixQrCode/create`, {
