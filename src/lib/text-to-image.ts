@@ -50,7 +50,7 @@ export async function generateTextImage(
       fontSize,
       textColor,
       backgroundColor,
-      font
+      font,
     })
 
     const response = await fetch(url, {
@@ -121,7 +121,7 @@ export async function generateGameLocationImage(
 ): Promise<TextImageResponse> {
   console.log("📍 === GENERATING GAME LOCATION IMAGE ===")
   console.log("📍 Input text:", gameLocation)
-  
+
   const options = {
     text: gameLocation.toUpperCase(), // Force CAPS LOCK
     width: 400,
@@ -131,9 +131,9 @@ export async function generateGameLocationImage(
     textColor: "#AB161A", // Changed to #AB161A
     backgroundColor: "transparent",
   }
-  
+
   console.log("📍 Location image options:", options)
-  
+
   return generateTextImage(options)
 }
 
@@ -148,7 +148,7 @@ export async function generateGameDateTimeImage(
     length: gameDateTime?.length,
     upperCased: gameDateTime.toUpperCase(),
   })
-  
+
   const options = {
     text: gameDateTime.toUpperCase(), // Force CAPS LOCK
     width: 400,
@@ -160,9 +160,12 @@ export async function generateGameDateTimeImage(
   }
 
   console.log("🕒 DateTime image options:", options)
-  
+
   const result = await generateTextImage(options)
-  console.log("🕒 DateTime image generated, buffer size:", result.imageBuffer.length)
+  console.log(
+    "🕒 DateTime image generated, buffer size:",
+    result.imageBuffer.length
+  )
 
   return result
 }
