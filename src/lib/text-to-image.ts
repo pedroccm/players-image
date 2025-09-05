@@ -145,10 +145,13 @@ export async function generateGameDateTimeImage(
     textColor: "#000000", // Black text
     backgroundColor: "transparent",
   }
-  
+
   console.log("🕒 Calling generateTextImage with options:", options)
   const result = await generateTextImage(options)
-  console.log("🕒 generateTextImage completed, buffer size:", result.imageBuffer.length)
-  
+  console.log(
+    "🕒 generateTextImage completed, buffer size:",
+    result.imageBuffer.length
+  )
+
   return result
 }

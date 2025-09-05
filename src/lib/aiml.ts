@@ -203,12 +203,19 @@ async function applyLogosToImage(
         })
 
         console.log("📍 Game location text positioned at bottom")
-        console.log("📍 textOverlays after adding location:", textOverlays.length)
-        
+        console.log(
+          "📍 textOverlays after adding location:",
+          textOverlays.length
+        )
+
         // Store location image for separate display
         console.log("📍 Storing location image for separate display")
-        locationImageBase64 = gameLocationImageData.imageBuffer.toString('base64')
-        console.log("📍 Location image stored, size:", locationImageBase64.length)
+        locationImageBase64 =
+          gameLocationImageData.imageBuffer.toString("base64")
+        console.log(
+          "📍 Location image stored, size:",
+          locationImageBase64.length
+        )
       } catch (error) {
         console.error("❌ Error generating location image:", error)
         console.error("❌ Will continue without location image")
@@ -257,12 +264,19 @@ async function applyLogosToImage(
         })
 
         console.log("🕒 Game date/time text positioned below location")
-        console.log("🕒 textOverlays after adding datetime:", textOverlays.length)
-        
+        console.log(
+          "🕒 textOverlays after adding datetime:",
+          textOverlays.length
+        )
+
         // Store datetime image for separate display
         console.log("🕒 Storing datetime image for separate display")
-        datetimeImageBase64 = gameDateTimeImageData.imageBuffer.toString('base64')
-        console.log("🕒 Datetime image stored, size:", datetimeImageBase64.length)
+        datetimeImageBase64 =
+          gameDateTimeImageData.imageBuffer.toString("base64")
+        console.log(
+          "🕒 Datetime image stored, size:",
+          datetimeImageBase64.length
+        )
       } catch (error) {
         console.error("❌ Error generating datetime image:", error)
         console.error("❌ Will continue without datetime image")
@@ -369,7 +383,7 @@ async function applyLogosToImage(
     return {
       finalImage: finalResult.toString("base64"),
       locationImage: locationImageBase64,
-      datetimeImage: datetimeImageBase64
+      datetimeImage: datetimeImageBase64,
     }
   } catch (error) {
     console.error("❌ ERROR applying logos and text:", error)
@@ -381,7 +395,7 @@ async function applyLogosToImage(
     return {
       finalImage: base64Image,
       locationImage: undefined,
-      datetimeImage: undefined
+      datetimeImage: undefined,
     }
   }
 }
@@ -506,12 +520,14 @@ export async function generateImage(
     if (!response.ok) {
       const errorText = await response.text()
       console.error("AIML API error response:", errorText)
-      
+
       // Handle specific timeout error (524)
       if (response.status === 524) {
-        throw new Error("O servidor AIML está temporariamente sobrecarregado. Tente novamente em alguns minutos.")
+        throw new Error(
+          "O servidor AIML está temporariamente sobrecarregado. Tente novamente em alguns minutos."
+        )
       }
-      
+
       throw new Error(`AIML API error: ${response.status} - ${errorText}`)
     }
 

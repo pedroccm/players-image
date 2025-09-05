@@ -320,14 +320,15 @@ export function ChatInterface() {
       }
     } catch (error) {
       console.error("Error generating image:", error)
-      
+
       // Reset state from generating to completed to stop loading
       setChatState((prev) => ({ ...prev, step: "completed" }))
       // Show retry button
       setShowRetryButton(true)
-      
+
       // Check if it's a timeout error
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro desconhecido"
       if (errorMessage.includes("temporariamente sobrecarregado")) {
         await addBotMessage(
           "🕐 O servidor está temporariamente sobrecarregado. Por favor, aguarde alguns minutos e tente novamente."
