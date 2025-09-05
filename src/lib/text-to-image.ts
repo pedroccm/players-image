@@ -41,11 +41,16 @@ export async function generateTextImage(
     })
 
     const url = `${LETTER_IMAGE_API_URL}?${params.toString()}`
-    console.log("📡 Letter-Image API Request:", {
+    console.log("📡 === LETTER-IMAGE API CALL ===")
+    console.log("📡 FULL URL:", url)
+    console.log("📡 PARAMETERS:", {
       text,
-      font,
+      width,
+      height,
+      fontSize,
+      textColor,
       backgroundColor,
-      url: url.substring(0, 100) + "...",
+      font
     })
 
     const response = await fetch(url, {
@@ -114,44 +119,50 @@ export async function generateUserNameImage(
 export async function generateGameLocationImage(
   gameLocation: string
 ): Promise<TextImageResponse> {
-  console.log("📍 Generating game location image:", gameLocation)
-  return generateTextImage({
+  console.log("📍 === GENERATING GAME LOCATION IMAGE ===")
+  console.log("📍 Input text:", gameLocation)
+  
+  const options = {
     text: gameLocation.toUpperCase(), // Force CAPS LOCK
-    width: 800,
-    height: 37, // Height 37
-    fontSize: 35, // Changed from 72px to 35px
+    width: 400,
+    height: 60,
+    fontSize: 44, // Increased from 42px to 44px (+2px)
     font: "Agharti-Bold.ttf", // Use bold variant
     textColor: "#AB161A", // Changed to #AB161A
     backgroundColor: "transparent",
-  })
+  }
+  
+  console.log("📍 Location image options:", options)
+  
+  return generateTextImage(options)
 }
 
 export async function generateGameDateTimeImage(
   gameDateTime: string
 ): Promise<TextImageResponse> {
-  console.log("🕒 === FUNCTION CALLED: generateGameDateTimeImage ===")
-  console.log("🕒 Input gameDateTime:", {
+  console.log("🕒 === GENERATING GAME DATETIME IMAGE ===")
+  console.log("🕒 Input text:", gameDateTime)
+  console.log("🕒 Input details:", {
     value: gameDateTime,
     type: typeof gameDateTime,
     length: gameDateTime?.length,
     upperCased: gameDateTime.toUpperCase(),
   })
+  
   const options = {
     text: gameDateTime.toUpperCase(), // Force CAPS LOCK
-    width: 800,
-    height: 40, // Changed from 100 to 40
-    fontSize: 40, // Changed from 60px to 40px
+    width: 400,
+    height: 60,
+    fontSize: 49, // Increased from 47px to 49px (+2px)
     font: "Agharti-Bold.ttf", // Use bold variant
     textColor: "#000000", // Black text
     backgroundColor: "transparent",
   }
 
-  console.log("🕒 Calling generateTextImage with options:", options)
+  console.log("🕒 DateTime image options:", options)
+  
   const result = await generateTextImage(options)
-  console.log(
-    "🕒 generateTextImage completed, buffer size:",
-    result.imageBuffer.length
-  )
+  console.log("🕒 DateTime image generated, buffer size:", result.imageBuffer.length)
 
   return result
 }

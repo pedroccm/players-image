@@ -22,7 +22,7 @@ const nextConfig = {
       },
       {
         source: "/:lang(en|ar)",
-        destination: process.env.HOME_PATHNAME,
+        destination: process.env.HOME_PATHNAME || "/chat-image",
         permanent: true,
         has: [
           {
@@ -33,7 +33,7 @@ const nextConfig = {
       },
       {
         source: "/:lang(en|ar)",
-        destination: process.env.HOME_PATHNAME,
+        destination: process.env.HOME_PATHNAME || "/chat-image",
         permanent: true,
         has: [
           {

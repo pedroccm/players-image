@@ -184,22 +184,11 @@ async function applyLogosToImage(
           height: gameLocationImageData.height,
         })
 
-        // Resize to fit image width and position at bottom center (no username anymore)
-        const resizedGameLocationImage = await sharp(
-          gameLocationImageData.imageBuffer
-        )
-          .resize(width, 37, {
-            // Changed height from 120 to 37
-            fit: "contain",
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
-          })
-          .png()
-          .toBuffer()
-
+        // Use image exactly as returned from API - no resize or crop
         textOverlays.push({
-          input: resizedGameLocationImage,
-          top: 1088, // y: 1088
-          left: 0, // x: 0 (full width, centered by text alignment)
+          input: gameLocationImageData.imageBuffer,
+          top: 1088, // y: 1088 (moved up 5px from 1093)
+          left: 162, // x: 162
         })
 
         console.log("📍 Game location text positioned at bottom")
@@ -245,22 +234,11 @@ async function applyLogosToImage(
           height: gameDateTimeImageData.height,
         })
 
-        // Resize to fit image width and position below location text
-        const resizedGameDateTimeImage = await sharp(
-          gameDateTimeImageData.imageBuffer
-        )
-          .resize(width, 40, {
-            // Changed height from 100 to 40
-            fit: "contain",
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
-          })
-          .png()
-          .toBuffer()
-
+        // Use image exactly as returned from API - no resize or crop
         textOverlays.push({
-          input: resizedGameDateTimeImage,
-          top: 1148, // y: 1148
-          left: 0, // x: 0 (full width, centered by text alignment)
+          input: gameDateTimeImageData.imageBuffer,
+          top: 1143, // y: 1143 (moved up 5px from 1148)
+          left: 162, // x: 162
         })
 
         console.log("🕒 Game date/time text positioned below location")
