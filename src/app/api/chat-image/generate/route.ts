@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 import type { NextRequest } from "next/server"
 
-import { generateImage } from "@/lib/aiml"
+import { generateImageWithTextImages } from "@/lib/aiml"
 
 export async function POST(request: NextRequest) {
   console.log("=== CHAT IMAGE GENERATE API CALLED ===")
@@ -27,7 +27,13 @@ export async function POST(request: NextRequest) {
     console.log("Player image:", playerImageUrl)
     console.log("Background image:", backgroundImageUrl)
     console.log("🔍 API received gameLocation:", gameLocation)
-    console.log("🔍 API received gameDateTime:", gameDateTime)
+    console.log("🔍 API received gameDateTime:", {
+      value: gameDateTime,
+      type: typeof gameDateTime,
+      hasValue: !!gameDateTime,
+      length: gameDateTime?.length,
+      trimmed: gameDateTime?.trim?.(),
+    })
     console.log("💎 API received hasPremium:", hasPremium)
 
     // Fixed prompt for mixing player with background
@@ -35,7 +41,7 @@ export async function POST(request: NextRequest) {
     const imageUrls = [playerImageUrl, backgroundImageUrl]
 
     // Generate image using AIML API
-    const imageBase64 = await generateImage(
+    const result = await generateImageWithTextImages(
       prompt,
       imageUrls,
       userName,
@@ -48,7 +54,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      imageBase64,
+      imageBase64: result.finalImage,
+      locationImage: result.locationImage,
+      datetimeImage: result.datetimeImage,
       userName,
     })
   } catch (error) {

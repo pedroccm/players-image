@@ -116,12 +116,12 @@ export async function generateGameLocationImage(
 ): Promise<TextImageResponse> {
   console.log("📍 Generating game location image:", gameLocation)
   return generateTextImage({
-    text: gameLocation,
+    text: gameLocation.toUpperCase(), // Force CAPS LOCK
     width: 800,
-    height: 120, // Increased height for larger font
-    fontSize: 72, // Double the size: 36px -> 72px
+    height: 37, // Height 37
+    fontSize: 35, // Changed from 72px to 35px
     font: "Agharti-Bold.ttf", // Use bold variant
-    textColor: "#000000", // Changed to black
+    textColor: "#AB161A", // Changed to #AB161A
     backgroundColor: "transparent",
   })
 }
@@ -129,14 +129,26 @@ export async function generateGameLocationImage(
 export async function generateGameDateTimeImage(
   gameDateTime: string
 ): Promise<TextImageResponse> {
-  console.log("🕒 Generating game date/time image:", gameDateTime)
-  return generateTextImage({
-    text: gameDateTime,
+  console.log("🕒 === FUNCTION CALLED: generateGameDateTimeImage ===")
+  console.log("🕒 Input gameDateTime:", {
+    value: gameDateTime,
+    type: typeof gameDateTime,
+    length: gameDateTime?.length,
+    upperCased: gameDateTime.toUpperCase(),
+  })
+  const options = {
+    text: gameDateTime.toUpperCase(), // Force CAPS LOCK
     width: 800,
-    height: 100, // Slightly smaller than location
-    fontSize: 60, // Slightly smaller font than location
+    height: 40, // Changed from 100 to 40
+    fontSize: 40, // Changed from 60px to 40px
     font: "Agharti-Bold.ttf", // Use bold variant
     textColor: "#000000", // Black text
     backgroundColor: "transparent",
-  })
+  }
+  
+  console.log("🕒 Calling generateTextImage with options:", options)
+  const result = await generateTextImage(options)
+  console.log("🕒 generateTextImage completed, buffer size:", result.imageBuffer.length)
+  
+  return result
 }

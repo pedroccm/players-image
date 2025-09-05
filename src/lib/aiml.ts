@@ -56,7 +56,11 @@ async function applyLogosToImage(
   gameLocation?: string,
   gameDateTime?: string,
   hasPremium: boolean = false
-): Promise<string> {
+): Promise<{
+  finalImage: string
+  locationImage?: string
+  datetimeImage?: string
+}> {
   console.log("🎨 === STARTING OVERLAY APPLICATION ===")
   console.log("📊 Input parameters:", {
     userName,
@@ -127,9 +131,9 @@ async function applyLogosToImage(
       spfc: spfcLogoPath,
     })
 
-    // Calculate logo size (10% of image width)
-    const logoSize = Math.floor(width * 0.1)
-    console.log("📏 Logo size calculated:", logoSize, "px")
+    // Fixed logo size to 70x70 pixels
+    const logoSize = 70
+    console.log("📏 Logo size fixed:", logoSize, "px")
 
     // Resize logos
     const portuguesaLogo = await sharp(portuguesaLogoPath)
@@ -155,6 +159,8 @@ async function applyLogosToImage(
 
     // Generate text overlays using Letter-Image API
     const textOverlays = []
+    let locationImageBase64: string | undefined
+    let datetimeImageBase64: string | undefined
 
     // Username text removed - only show game location
 
@@ -168,76 +174,99 @@ async function applyLogosToImage(
         "📍 Generating game location image via Letter-Image API:",
         gameLocation
       )
-      const gameLocationImageData =
-        await generateGameLocationImage(gameLocation)
+      try {
+        const gameLocationImageData =
+          await generateGameLocationImage(gameLocation)
 
-      console.log("📍 Game location image generated:", {
-        bufferSize: gameLocationImageData.imageBuffer.length,
-        width: gameLocationImageData.width,
-        height: gameLocationImageData.height,
-      })
-
-      // Resize to fit image width and position at bottom center (no username anymore)
-      const resizedGameLocationImage = await sharp(
-        gameLocationImageData.imageBuffer
-      )
-        .resize(width, 120, {
-          // Increased height for 72px font
-          fit: "contain",
-          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        console.log("📍 Game location image generated:", {
+          bufferSize: gameLocationImageData.imageBuffer.length,
+          width: gameLocationImageData.width,
+          height: gameLocationImageData.height,
         })
-        .png()
-        .toBuffer()
 
-      textOverlays.push({
-        input: resizedGameLocationImage,
-        top: 1065, // y: 1065 (5px up from 1070)
-        left: -110, // x: -110 (20px left from -90)
-      })
+        // Resize to fit image width and position at bottom center (no username anymore)
+        const resizedGameLocationImage = await sharp(
+          gameLocationImageData.imageBuffer
+        )
+          .resize(width, 37, {
+            // Changed height from 120 to 37
+            fit: "contain",
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
+          })
+          .png()
+          .toBuffer()
 
-      console.log("📍 Game location text positioned at bottom")
-      console.log("📍 textOverlays after adding location:", textOverlays.length)
+        textOverlays.push({
+          input: resizedGameLocationImage,
+          top: 1088, // y: 1088
+          left: 0, // x: 0 (full width, centered by text alignment)
+        })
+
+        console.log("📍 Game location text positioned at bottom")
+        console.log("📍 textOverlays after adding location:", textOverlays.length)
+        
+        // Store location image for separate display
+        console.log("📍 Storing location image for separate display")
+        locationImageBase64 = gameLocationImageData.imageBuffer.toString('base64')
+        console.log("📍 Location image stored, size:", locationImageBase64.length)
+      } catch (error) {
+        console.error("❌ Error generating location image:", error)
+        console.error("❌ Will continue without location image")
+      }
     }
 
     // Add gameDateTime text if provided
     console.log("🔍 Checking gameDateTime:", {
       gameDateTime,
       hasValue: !!gameDateTime,
+      type: typeof gameDateTime,
+      length: gameDateTime?.length,
+      trimmed: gameDateTime?.trim?.(),
     })
-    if (gameDateTime) {
+    if (gameDateTime && gameDateTime.trim()) {
       console.log(
         "🕒 Generating game date/time image via Letter-Image API:",
         gameDateTime
       )
-      const gameDateTimeImageData =
-        await generateGameDateTimeImage(gameDateTime)
+      try {
+        const gameDateTimeImageData =
+          await generateGameDateTimeImage(gameDateTime)
 
-      console.log("🕒 Game date/time image generated:", {
-        bufferSize: gameDateTimeImageData.imageBuffer.length,
-        width: gameDateTimeImageData.width,
-        height: gameDateTimeImageData.height,
-      })
-
-      // Resize to fit image width and position below location text
-      const resizedGameDateTimeImage = await sharp(
-        gameDateTimeImageData.imageBuffer
-      )
-        .resize(width, 100, {
-          // Smaller height for datetime
-          fit: "contain",
-          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        console.log("🕒 Game date/time image generated:", {
+          bufferSize: gameDateTimeImageData.imageBuffer.length,
+          width: gameDateTimeImageData.width,
+          height: gameDateTimeImageData.height,
         })
-        .png()
-        .toBuffer()
 
-      textOverlays.push({
-        input: resizedGameDateTimeImage,
-        top: 1180, // y: 1180 (below location text)
-        left: -70, // x: -70 (same as location)
-      })
+        // Resize to fit image width and position below location text
+        const resizedGameDateTimeImage = await sharp(
+          gameDateTimeImageData.imageBuffer
+        )
+          .resize(width, 40, {
+            // Changed height from 100 to 40
+            fit: "contain",
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
+          })
+          .png()
+          .toBuffer()
 
-      console.log("🕒 Game date/time text positioned below location")
-      console.log("🕒 textOverlays after adding datetime:", textOverlays.length)
+        textOverlays.push({
+          input: resizedGameDateTimeImage,
+          top: 1148, // y: 1148
+          left: 0, // x: 0 (full width, centered by text alignment)
+        })
+
+        console.log("🕒 Game date/time text positioned below location")
+        console.log("🕒 textOverlays after adding datetime:", textOverlays.length)
+        
+        // Store datetime image for separate display
+        console.log("🕒 Storing datetime image for separate display")
+        datetimeImageBase64 = gameDateTimeImageData.imageBuffer.toString('base64')
+        console.log("🕒 Datetime image stored, size:", datetimeImageBase64.length)
+      } catch (error) {
+        console.error("❌ Error generating datetime image:", error)
+        console.error("❌ Will continue without datetime image")
+      }
     } else {
       console.log("❌ gameDateTime not provided or empty")
     }
@@ -248,18 +277,18 @@ async function applyLogosToImage(
       {
         input: escudosShape,
         top: 1050, // y: 1050
-        left: -15, // x: -15 (-5px)
+        left: -16, // x: -16 (moved 1px left from -15)
       },
       // Logos
       {
         input: portuguesaLogo,
-        top: 1055, // y: 1055 (5px down from 1050)
-        left: 51, // x: 51 (-2px)
+        top: 1059, // y: 1059
+        left: 50, // x: 50 (moved 1px left from 51)
       },
       {
         input: spfcLogo,
-        top: 1149, // y: 1149 (5px up from 1154)
-        left: 51, // x: 51 (-2px)
+        top: 1145, // y: 1145
+        left: 50, // x: 50 (moved 1px left from 51)
       },
       // Text overlays
       ...textOverlays,
@@ -336,8 +365,12 @@ async function applyLogosToImage(
 
     console.log("📊 Final image size:", finalResult.length, "bytes")
 
-    // Convert back to base64
-    return finalResult.toString("base64")
+    // Convert back to base64 and return with text images
+    return {
+      finalImage: finalResult.toString("base64"),
+      locationImage: locationImageBase64,
+      datetimeImage: datetimeImageBase64
+    }
   } catch (error) {
     console.error("❌ ERROR applying logos and text:", error)
     console.error(
@@ -345,7 +378,81 @@ async function applyLogosToImage(
       error instanceof Error ? error.stack : "No stack trace"
     )
     // Return original image if processing fails
-    return base64Image
+    return {
+      finalImage: base64Image,
+      locationImage: undefined,
+      datetimeImage: undefined
+    }
+  }
+}
+
+export async function generateImageWithTextImages(
+  prompt: string,
+  imageUrls: string[],
+  userName?: string,
+  gameLocation?: string,
+  gameDateTime?: string,
+  hasPremium: boolean = false
+): Promise<{
+  finalImage: string
+  locationImage?: string
+  datetimeImage?: string
+}> {
+  console.log("🚀 === GENERATE IMAGE WITH TEXT IMAGES CALLED ===")
+  console.log("📋 Parameters:", {
+    userName,
+    gameLocation,
+    gameDateTime,
+    imageCount: imageUrls.length,
+  })
+
+  try {
+    const response = await fetch(
+      "https://api.aimlapi.com/v1/images/generations",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${AIML_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image-edit",
+          image_urls: imageUrls,
+          prompt: prompt,
+          num_images: 1,
+        }),
+      }
+    )
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`AIML API error: ${response.status} - ${errorText}`)
+    }
+
+    const data = await response.json()
+
+    if (!data.images?.[0]?.url) {
+      throw new Error("No image generated in response")
+    }
+
+    const imageUrl = data.images[0].url
+    const imageResponse = await fetch(imageUrl)
+    const imageBuffer = await imageResponse.arrayBuffer()
+    const base64 = Buffer.from(imageBuffer).toString("base64")
+
+    // Apply logos and text to the generated image
+    const result = await applyLogosToImage(
+      base64,
+      userName,
+      gameLocation,
+      gameDateTime,
+      hasPremium
+    )
+
+    return result
+  } catch (error) {
+    console.error("Error generating image with text images:", error)
+    throw error
   }
 }
 
@@ -399,6 +506,12 @@ export async function generateImage(
     if (!response.ok) {
       const errorText = await response.text()
       console.error("AIML API error response:", errorText)
+      
+      // Handle specific timeout error (524)
+      if (response.status === 524) {
+        throw new Error("O servidor AIML está temporariamente sobrecarregado. Tente novamente em alguns minutos.")
+      }
+      
       throw new Error(`AIML API error: ${response.status} - ${errorText}`)
     }
 
@@ -427,7 +540,7 @@ export async function generateImage(
 
     // Apply logos and text to the generated image
     console.log("Applying logos and text to generated image...")
-    const finalBase64 = await applyLogosToImage(
+    const result = await applyLogosToImage(
       base64,
       userName,
       gameLocation,
@@ -436,10 +549,10 @@ export async function generateImage(
     )
     console.log(
       "Logos and text applied successfully, final image length:",
-      finalBase64.length
+      result.finalImage.length
     )
 
-    return finalBase64
+    return result.finalImage
   } catch (error) {
     console.error("Error generating image:", error)
     throw error

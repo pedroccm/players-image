@@ -65,6 +65,7 @@ export function ChatInterface() {
   const [_paymentPollingId, _setPaymentPollingId] = useState<string | null>(
     null
   )
+  const [showRetryButton, setShowRetryButton] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -229,7 +230,11 @@ export function ChatInterface() {
       1500
     )
 
-    // Generate image with location and datetime
+    await generateImageWithCurrentData(dateTime)
+  }
+
+  const generateImageWithCurrentData = async (overrideDateTime?: string) => {
+    // Generate image with current data
     try {
       const response = await fetch("/api/chat-image/generate", {
         method: "POST",
@@ -239,7 +244,7 @@ export function ChatInterface() {
           backgroundImageUrl: chatState.selectedBackgroundUrl,
           userName: chatState.userName,
           gameLocation: chatState.gameLocation,
-          gameDateTime: dateTime, // Use the dateTime variable directly
+          gameDateTime: overrideDateTime || chatState.gameDateTime,
           hasPremium: chatState.hasPremium,
         }),
       })
@@ -253,6 +258,8 @@ export function ChatInterface() {
           generatedImageUrl,
           step: "completed",
         }))
+        // Hide retry button on success
+        setShowRetryButton(false)
 
         await addBotMessage("Pronto! Aqui está sua imagem personalizada:", 1000)
 
@@ -262,6 +269,23 @@ export function ChatInterface() {
             "Você pode clicar na imagem para ver em tamanho completo em uma nova aba.",
           imageUrl: generatedImageUrl,
         })
+
+        // Show text images separately for debugging
+        if (data.locationImage) {
+          addMessage({
+            type: "bot",
+            content: "Imagem do texto do local (para análise):",
+            imageUrl: `data:image/png;base64,${data.locationImage}`,
+          })
+        }
+
+        if (data.datetimeImage) {
+          addMessage({
+            type: "bot",
+            content: "Imagem do texto da data/hora (para análise):",
+            imageUrl: `data:image/png;base64,${data.datetimeImage}`,
+          })
+        }
 
         await addBotMessage("Quer subir outra foto?", 1500)
 
@@ -296,11 +320,33 @@ export function ChatInterface() {
       }
     } catch (error) {
       console.error("Error generating image:", error)
-      await addBotMessage(
-        "Ops! Houve um erro ao gerar a imagem. Tente novamente mais tarde."
-      )
-      toast.error("Erro ao gerar imagem")
+      
+      // Reset state from generating to completed to stop loading
+      setChatState((prev) => ({ ...prev, step: "completed" }))
+      // Show retry button
+      setShowRetryButton(true)
+      
+      // Check if it's a timeout error
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
+      if (errorMessage.includes("temporariamente sobrecarregado")) {
+        await addBotMessage(
+          "🕐 O servidor está temporariamente sobrecarregado. Por favor, aguarde alguns minutos e tente novamente."
+        )
+        toast.error("Servidor temporariamente indisponível")
+      } else {
+        await addBotMessage(
+          "Ops! Houve um erro ao gerar a imagem. Tente novamente mais tarde."
+        )
+        toast.error("Erro ao gerar imagem")
+      }
     }
+  }
+
+  const handleRetryGeneration = async () => {
+    setShowRetryButton(false)
+    setChatState((prev) => ({ ...prev, step: "generating" }))
+    await addBotMessage("Tentando gerar a imagem novamente...", 1000)
+    await generateImageWithCurrentData() // For retry, use stored state
   }
 
   const handlePaymentAccept = async () => {
@@ -587,6 +633,18 @@ export function ChatInterface() {
               </Button>
               <Button variant="outline" onClick={handlePaymentDecline}>
                 Não, obrigado
+              </Button>
+            </div>
+          )}
+
+          {/* Retry Button */}
+          {showRetryButton && (
+            <div className="p-4 flex justify-center">
+              <Button
+                onClick={handleRetryGeneration}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                🔄 Tentar Novamente
               </Button>
             </div>
           )}
