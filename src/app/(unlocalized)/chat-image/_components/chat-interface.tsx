@@ -17,6 +17,7 @@ type ChatStep =
   | "name"
   | "player-photo"
   | "background-selection"
+  | "prompt-input"
   | "game-location"
   | "game-datetime"
   | "generating"
@@ -30,6 +31,7 @@ interface ChatState {
   userName: string
   playerImageUrl: string
   selectedBackgroundUrl: string
+  customPrompt: string
   gameLocation: string
   gameDateTime: string
   generatedImageUrl: string
@@ -43,6 +45,7 @@ const BACKGROUND_OPTIONS = [
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg3.png",
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg4.png",
   "https://wbsfhwnmteeshqmjnyor.supabase.co/storage/v1/object/public/athlete_media/saida.png",
+  "https://wbsfhwnmteeshqmjnyor.supabase.co/storage/v1/object/public/athlete_media/spfc.jpg",
 ]
 
 export function ChatInterface() {
@@ -52,6 +55,7 @@ export function ChatInterface() {
     userName: "",
     playerImageUrl: "",
     selectedBackgroundUrl: "",
+    customPrompt: "",
     gameLocation: "",
     gameDateTime: "",
     generatedImageUrl: "",
@@ -179,10 +183,31 @@ export function ChatInterface() {
     setChatState((prev) => ({
       ...prev,
       selectedBackgroundUrl: backgroundUrl,
-      step: "game-location",
+      step: "prompt-input",
     }))
 
     await addBotMessage("Ótima escolha! ✅", 1000)
+    await addBotMessage("Agora me diga como você quer combinar as imagens (ex: 'remova o fundo e coloque o jogador em destaque', 'misture as duas imagens', etc):", 1500)
+  }
+
+  const handlePromptSubmit = async () => {
+    if (!inputValue.trim()) return
+
+    const prompt = inputValue.trim()
+    addMessage({
+      type: "user",
+      content: prompt,
+      userName: chatState.userName,
+    })
+
+    setChatState((prev) => ({
+      ...prev,
+      customPrompt: prompt,
+      step: "game-location",
+    }))
+    setInputValue("")
+
+    await addBotMessage(`Perfeito! ✅`, 1000)
     await addBotMessage("Agora me diga o local do jogo:", 1500)
   }
 
@@ -243,6 +268,7 @@ export function ChatInterface() {
         body: JSON.stringify({
           playerImageUrl: chatState.playerImageUrl,
           backgroundImageUrl: chatState.selectedBackgroundUrl,
+          customPrompt: chatState.customPrompt,
           userName: chatState.userName,
           gameLocation: chatState.gameLocation,
           gameDateTime: overrideDateTime || chatState.gameDateTime,
@@ -486,6 +512,7 @@ export function ChatInterface() {
         body: JSON.stringify({
           playerImageUrl: chatState.playerImageUrl,
           backgroundImageUrl: chatState.selectedBackgroundUrl,
+          customPrompt: chatState.customPrompt,
           userName: chatState.userName,
           gameLocation: chatState.gameLocation,
           gameDateTime: chatState.gameDateTime,
@@ -540,6 +567,8 @@ export function ChatInterface() {
       e.preventDefault()
       if (chatState.step === "name") {
         handleNameSubmit()
+      } else if (chatState.step === "prompt-input") {
+        handlePromptSubmit()
       } else if (chatState.step === "game-location") {
         handleGameLocationSubmit()
       } else if (chatState.step === "game-datetime") {
@@ -561,6 +590,8 @@ export function ChatInterface() {
 
   const canShowNameInput =
     chatState.step === "name" && !isTyping && isInitialized
+  const canShowPromptInput =
+    chatState.step === "prompt-input" && !isTyping && isInitialized
   const canShowLocationInput =
     chatState.step === "game-location" && !isTyping && isInitialized
   const canShowDateTimeInput =
@@ -667,6 +698,30 @@ export function ChatInterface() {
                 className="flex-1"
               />
               <Button onClick={handleNameSubmit} disabled={!inputValue.trim()}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Input Area - Prompt */}
+      {canShowPromptInput && (
+        <div className="border-t p-4 bg-background/95 backdrop-blur">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex gap-3">
+              <Input
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Como combinar as imagens? (ex: remova o fundo, coloque em destaque...)"
+                className="flex-1"
+              />
+              <Button
+                onClick={handlePromptSubmit}
+                disabled={!inputValue.trim()}
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>

@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
     const {
       playerImageUrl,
       backgroundImageUrl,
+      customPrompt,
       userName,
       gameLocation,
       gameDateTime,
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
     console.log("Generating image for user:", userName)
     console.log("Player image:", playerImageUrl)
     console.log("Background image:", backgroundImageUrl)
+    console.log("📝 Custom prompt:", customPrompt)
     console.log("🔍 API received gameLocation:", gameLocation)
     console.log("🔍 API received gameDateTime:", {
       value: gameDateTime,
@@ -36,8 +38,8 @@ export async function POST(request: NextRequest) {
     })
     console.log("💎 API received hasPremium:", hasPremium)
 
-    // Fixed prompt for mixing player with background
-    const prompt = "Combine the two images by cutting out the player photo (completely removing its background) and placing it on top of the background image, without blending, keeping the player sharp and clearly in the foreground."
+    // Use custom prompt from user or default
+    const prompt = customPrompt || "Combine the two images by cutting out the player photo (completely removing its background) and placing it on top of the background image, without blending, keeping the player sharp and clearly in the foreground."
     const imageUrls = [playerImageUrl, backgroundImageUrl]
 
     // Generate image using AIML API
