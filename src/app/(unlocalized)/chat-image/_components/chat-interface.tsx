@@ -187,7 +187,10 @@ export function ChatInterface() {
     }))
 
     await addBotMessage("Ótima escolha! ✅", 1000)
-    await addBotMessage("Agora me diga como você quer combinar as imagens (ex: 'remova o fundo e coloque o jogador em destaque', 'misture as duas imagens', etc):", 1500)
+    await addBotMessage(
+      "Agora me diga como você quer combinar as imagens (ex: 'remova o fundo e coloque o jogador em destaque', 'misture as duas imagens', etc):",
+      1500
+    )
   }
 
   const handlePromptSubmit = async () => {

@@ -39,7 +39,9 @@ export async function POST(request: NextRequest) {
     console.log("💎 API received hasPremium:", hasPremium)
 
     // Use custom prompt from user or default
-    const prompt = customPrompt || "Combine the two images by cutting out the player photo (completely removing its background) and placing it on top of the background image, without blending, keeping the player sharp and clearly in the foreground."
+    const prompt =
+      customPrompt ||
+      "Combine the two images by cutting out the player photo (completely removing its background) and placing it on top of the background image, without blending, keeping the player sharp and clearly in the foreground."
     const imageUrls = [playerImageUrl, backgroundImageUrl]
 
     // Generate image using AIML API
