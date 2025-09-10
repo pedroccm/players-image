@@ -5,12 +5,12 @@ import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FormImageUpload } from "./form-image-upload"
 import { FormBackgroundSelector } from "./form-background-selector"
+import { FormImageUpload } from "./form-image-upload"
 
 const BACKGROUND_OPTIONS = [
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg.png",
@@ -42,12 +42,14 @@ export function FormInterface() {
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null)
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
+    null
+  )
   const [showPaymentOffer, setShowPaymentOffer] = useState(false)
   const [hasPremium, setHasPremium] = useState(false)
 
   const updateFormData = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handlePlayerImageUploaded = (imageUrl: string) => {
@@ -60,7 +62,7 @@ export function FormInterface() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Validação
     if (!formData.userName.trim()) {
       toast.error("Nome é obrigatório")
@@ -92,7 +94,9 @@ export function FormInterface() {
         body: JSON.stringify({
           playerImageUrl: formData.playerImageUrl,
           backgroundImageUrl: formData.selectedBackgroundUrl,
-          customPrompt: formData.customPrompt || "Combine the two images by cutting out the player photo (completely removing its background) and placing it on top of the background image, without blending, keeping the player sharp and clearly in the foreground.",
+          customPrompt:
+            formData.customPrompt ||
+            "Combine the two images by cutting out the player photo (completely removing its background) and placing it on top of the background image, without blending, keeping the player sharp and clearly in the foreground.",
           userName: formData.userName,
           gameLocation: formData.gameLocation,
           gameDateTime: formData.gameDateTime,
@@ -106,7 +110,7 @@ export function FormInterface() {
         const imageUrl = `data:image/png;base64,${data.imageBase64}`
         setGeneratedImageUrl(imageUrl)
         toast.success("Imagem gerada com sucesso!")
-        
+
         // Mostrar oferta de pagamento após 3 segundos
         setTimeout(() => {
           if (!hasPremium) {
@@ -116,17 +120,20 @@ export function FormInterface() {
       } else {
         if (data.error === "content_blocked") {
           toast.error("Essa foto não pôde ser processada. Tente outra foto.")
-          setFormData(prev => ({ ...prev, playerImageUrl: "" }))
+          setFormData((prev) => ({ ...prev, playerImageUrl: "" }))
         } else {
           throw new Error(data.message || data.error)
         }
       }
     } catch (error) {
       console.error("Error generating image:", error)
-      
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
+
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro desconhecido"
       if (errorMessage.includes("temporariamente sobrecarregado")) {
-        toast.error("Servidor temporariamente indisponível. Tente novamente em alguns minutos.")
+        toast.error(
+          "Servidor temporariamente indisponível. Tente novamente em alguns minutos."
+        )
       } else {
         toast.error("Erro ao gerar imagem. Tente novamente.")
       }
@@ -147,7 +154,7 @@ export function FormInterface() {
 
       if (data.success) {
         toast.success("Pagamento PIX criado! Simule o pagamento para testar.")
-        
+
         // Simular pagamento automaticamente (apenas para desenvolvimento)
         setTimeout(async () => {
           try {
@@ -156,18 +163,17 @@ export function FormInterface() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ paymentId: data.data.id }),
             })
-            
+
             setHasPremium(true)
             setShowPaymentOffer(false)
             toast.success("Premium ativado! Gerando imagem sem marca d'água...")
-            
+
             // Regenerar imagem premium
             handleSubmit({ preventDefault: () => {} } as React.FormEvent)
           } catch (error) {
             console.error("Error simulating payment:", error)
           }
         }, 2000)
-        
       } else {
         throw new Error(data.error)
       }
@@ -177,11 +183,12 @@ export function FormInterface() {
     }
   }
 
-  const isFormValid = formData.userName.trim() && 
-                     formData.playerImageUrl && 
-                     formData.selectedBackgroundUrl &&
-                     formData.gameLocation.trim() &&
-                     formData.gameDateTime.trim()
+  const isFormValid =
+    formData.userName.trim() &&
+    formData.playerImageUrl &&
+    formData.selectedBackgroundUrl &&
+    formData.gameLocation.trim() &&
+    formData.gameDateTime.trim()
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -225,7 +232,9 @@ export function FormInterface() {
 
             {/* Prompt personalizado */}
             <div className="space-y-2">
-              <Label htmlFor="customPrompt">Como Combinar as Imagens (opcional)</Label>
+              <Label htmlFor="customPrompt">
+                Como Combinar as Imagens (opcional)
+              </Label>
               <Textarea
                 id="customPrompt"
                 value={formData.customPrompt}
@@ -304,12 +313,15 @@ export function FormInterface() {
       {showPaymentOffer && !hasPremium && (
         <Card className="border-yellow-200 bg-yellow-50">
           <CardHeader>
-            <CardTitle className="text-yellow-800">💎 Upgrade Premium</CardTitle>
+            <CardTitle className="text-yellow-800">
+              💎 Upgrade Premium
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-yellow-700 mb-4">
-              Quer desbloquear recursos premium por apenas R$ 3,00? 
-              Você terá acesso a imagens sem marca d'água e outras funcionalidades incríveis!
+              Quer desbloquear recursos premium por apenas R$ 3,00? Você terá
+              acesso a imagens sem marca d&apos;água e outras funcionalidades
+              incríveis!
             </p>
             <div className="flex gap-3">
               <Button

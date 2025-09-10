@@ -36,7 +36,11 @@ export async function middleware(request: NextRequest) {
   console.log("MIDDLEWARE:", pathname)
 
   // Skip middleware for chat-image, form-image and photo-mix routes
-  if (pathname.startsWith("/chat-image") || pathname.startsWith("/form-image") || pathname.startsWith("/photo-mix")) {
+  if (
+    pathname.startsWith("/chat-image") ||
+    pathname.startsWith("/form-image") ||
+    pathname.startsWith("/photo-mix")
+  ) {
     console.log("SKIPPING MIDDLEWARE FOR:", pathname)
     return NextResponse.next()
   }
