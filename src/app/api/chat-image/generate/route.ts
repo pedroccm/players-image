@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   console.log("=== CHAT IMAGE GENERATE API CALLED ===")
   console.log("🌍 Environment:", process.env.NODE_ENV)
   console.log("🔑 AIML_API_KEY exists:", !!process.env.AIML_API_KEY)
-  
+
   try {
     const {
       playerImageUrl,
@@ -75,9 +75,18 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("❌ Error in chat image generation:", error)
     console.error("❌ Error type:", typeof error)
-    console.error("❌ Error name:", error instanceof Error ? error.name : "Unknown")
-    console.error("❌ Error message:", error instanceof Error ? error.message : String(error))
-    console.error("❌ Error stack:", error instanceof Error ? error.stack : "No stack trace")
+    console.error(
+      "❌ Error name:",
+      error instanceof Error ? error.name : "Unknown"
+    )
+    console.error(
+      "❌ Error message:",
+      error instanceof Error ? error.message : String(error)
+    )
+    console.error(
+      "❌ Error stack:",
+      error instanceof Error ? error.stack : "No stack trace"
+    )
 
     // Check if it's a 422 content policy error
     if (error instanceof Error && error.message.includes("422")) {
