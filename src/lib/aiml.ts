@@ -122,13 +122,24 @@ async function applyLogosToImage(
         // Fallback to default portuguesa if no team selected
         return path.join(process.cwd(), "public", "images", "portuguesa.png")
       }
-      
+
       // First, try with SVG extension
-      const svgPath = path.join(process.cwd(), "public", "escudos_2025", `${teamId}.svg`)
-      const pngPath = path.join(process.cwd(), "public", "escudos_2025", `${teamId}.png`)
-      
+      const svgPath = path.join(
+        process.cwd(),
+        "public",
+        "escudos_2025",
+        `${teamId}.svg`
+      )
+      const pngPath = path.join(
+        process.cwd(),
+        "public",
+        "escudos_2025",
+        `${teamId}.png`
+      )
+
       // Check which file exists (both SVG and PNG are supported by Sharp)
-      const fs = require('fs')
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const fs = require("fs")
       if (fs.existsSync(svgPath)) {
         return svgPath
       } else if (fs.existsSync(pngPath)) {

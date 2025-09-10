@@ -1,7 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Check, ChevronsUpDown, Search } from "lucide-react"
+import { Check, ChevronsUpDown } from "lucide-react"
+
+import { TEAMS } from "@/lib/teams"
+import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,8 +20,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-import { TEAMS, type Team } from "@/lib/teams"
 
 interface TeamSelectorProps {
   value?: string

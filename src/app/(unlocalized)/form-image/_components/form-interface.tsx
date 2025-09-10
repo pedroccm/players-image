@@ -1,8 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+
+import { getTeamNameById } from "@/lib/teams"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,7 +14,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { FormBackgroundSelector } from "./form-background-selector"
 import { FormImageUpload } from "./form-image-upload"
 import { TeamSelector } from "./team-selector"
-import { getTeamNameById } from "@/lib/teams"
 
 const BACKGROUND_OPTIONS = [
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg.png",
@@ -73,27 +74,27 @@ export function FormInterface() {
   }
 
   // Function to generate backgrounds for selected team
-  const generateBackgroundsForTeam = async (teamId: string) => {
+  const generateBackgroundsForTeam = useCallback(async (teamId: string) => {
     setIsGeneratingBackgrounds(true)
     setBackgroundsError(null)
     setUseStaticBackgrounds(false)
-    
+
     try {
       console.log("🏆 Generating backgrounds for team:", teamId)
-      
+
       // Get team name from ID
       const teamName = getTeamNameById(teamId)
       console.log("📝 Team name for API:", teamName)
-      
-      const response = await fetch('/api/backgrounds/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamName })
+
+      const response = await fetch("/api/backgrounds/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamName }),
       })
-      
+
       const data = await response.json()
       console.log("📊 Background generation response:", data)
-      
+
       if (data.success && data.urls && Array.isArray(data.urls)) {
         setGeneratedBackgrounds(data.urls)
         // Clear previous background selection
@@ -104,13 +105,15 @@ export function FormInterface() {
       }
     } catch (error) {
       console.error("❌ Error generating backgrounds:", error)
-      setBackgroundsError(error instanceof Error ? error.message : "Erro de conexão")
+      setBackgroundsError(
+        error instanceof Error ? error.message : "Erro de conexão"
+      )
       setUseStaticBackgrounds(true) // Fallback to static backgrounds
       toast.error("Erro ao gerar backgrounds. Usando backgrounds padrão.")
     } finally {
       setIsGeneratingBackgrounds(false)
     }
-  }
+  }, [])
 
   // Auto-generate backgrounds when home team changes
   useEffect(() => {
@@ -122,7 +125,7 @@ export function FormInterface() {
       setUseStaticBackgrounds(true)
       setBackgroundsError(null)
     }
-  }, [formData.homeTeam])
+  }, [formData.homeTeam, generateBackgroundsForTeam])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -318,18 +321,27 @@ export function FormInterface() {
                 </div>
               ) : backgroundsError ? (
                 <div className="text-center py-8 border-2 border-dashed border-red-200 rounded-lg bg-red-50">
-                  <p className="text-sm text-red-600 mb-2">{backgroundsError}</p>
-                  <Button 
-                    variant="outline" 
+                  <p className="text-sm text-red-600 mb-2">
+                    {backgroundsError}
+                  </p>
+                  <Button
+                    variant="outline"
                     size="sm"
-                    onClick={() => formData.homeTeam && generateBackgroundsForTeam(formData.homeTeam)}
+                    onClick={() =>
+                      formData.homeTeam &&
+                      generateBackgroundsForTeam(formData.homeTeam)
+                    }
                   >
                     Tentar Novamente
                   </Button>
                 </div>
               ) : (
                 <FormBackgroundSelector
-                  backgrounds={useStaticBackgrounds ? BACKGROUND_OPTIONS : generatedBackgrounds}
+                  backgrounds={
+                    useStaticBackgrounds
+                      ? BACKGROUND_OPTIONS
+                      : generatedBackgrounds
+                  }
                   onSelect={handleBackgroundSelected}
                   selectedBackground={formData.selectedBackgroundUrl}
                 />
