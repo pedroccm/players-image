@@ -59,7 +59,10 @@ export function FormInterface() {
   const [generatedBackgrounds, setGeneratedBackgrounds] = useState<string[]>([])
   const [isGeneratingBackgrounds, setIsGeneratingBackgrounds] = useState(false)
   const [backgroundsError, setBackgroundsError] = useState<string | null>(null)
-  const [backgroundProgress, setBackgroundProgress] = useState({ current: 0, total: 3 })
+  const [backgroundProgress, setBackgroundProgress] = useState({
+    current: 0,
+    total: 3,
+  })
 
   const updateFormData = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -89,14 +92,13 @@ export function FormInterface() {
       console.log("📝 Team name for API:", teamName)
 
       const maxBackgrounds = 3
-      let successCount = 0
       const allUrls: string[] = []
 
       // Make multiple calls to get multiple backgrounds progressively
       for (let i = 1; i <= maxBackgrounds; i++) {
         try {
           console.log(`🌐 Making API call ${i}/${maxBackgrounds}...`)
-          
+
           // Update progress
           setBackgroundProgress({ current: i, total: maxBackgrounds })
 
@@ -111,13 +113,14 @@ export function FormInterface() {
 
           if (data.success && data.urls && Array.isArray(data.urls)) {
             allUrls.push(...data.urls)
-            successCount++
-            
+
             // Update backgrounds progressively as they arrive
             setGeneratedBackgrounds([...allUrls])
-            
-            console.log(`✅ Call ${i} successful, total backgrounds: ${allUrls.length}`)
-            
+
+            console.log(
+              `✅ Call ${i} successful, total backgrounds: ${allUrls.length}`
+            )
+
             // Show success message for first background
             if (i === 1) {
               toast.success(`Backgrounds sendo gerados para ${teamName}!`)
@@ -137,14 +140,15 @@ export function FormInterface() {
       } else {
         throw new Error("Todas as chamadas falharam")
       }
-
     } catch (error) {
       console.error("❌ Error generating backgrounds:", error)
       setBackgroundsError(
         error instanceof Error ? error.message : "Erro de conexão"
       )
       // Keep static backgrounds available even if generation fails
-      toast.error("Erro ao gerar backgrounds personalizados. Backgrounds padrão disponíveis.")
+      toast.error(
+        "Erro ao gerar backgrounds personalizados. Backgrounds padrão disponíveis."
+      )
     } finally {
       setIsGeneratingBackgrounds(false)
     }
@@ -354,11 +358,15 @@ export function FormInterface() {
                       Gerando backgrounds personalizados...
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Progresso: {backgroundProgress.current}/{backgroundProgress.total}
+                      Progresso: {backgroundProgress.current}/
+                      {backgroundProgress.total}
                     </p>
                   </div>
                   <FormBackgroundSelector
-                    backgrounds={[...BACKGROUND_OPTIONS, ...generatedBackgrounds]}
+                    backgrounds={[
+                      ...BACKGROUND_OPTIONS,
+                      ...generatedBackgrounds,
+                    ]}
                     onSelect={handleBackgroundSelected}
                     selectedBackground={formData.selectedBackgroundUrl}
                   />
@@ -388,7 +396,8 @@ export function FormInterface() {
               )}
               {generatedBackgrounds.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  ✨ {generatedBackgrounds.length} backgrounds personalizados adicionados
+                  ✨ {generatedBackgrounds.length} backgrounds personalizados
+                  adicionados
                 </p>
               )}
             </div>
