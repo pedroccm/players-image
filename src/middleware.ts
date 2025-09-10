@@ -35,8 +35,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   console.log("MIDDLEWARE:", pathname)
 
-  // Skip middleware for chat-image and photo-mix routes
-  if (pathname.startsWith("/chat-image") || pathname.startsWith("/photo-mix")) {
+  // Skip middleware for chat-image, form-image and photo-mix routes
+  if (pathname.startsWith("/chat-image") || pathname.startsWith("/form-image") || pathname.startsWith("/photo-mix")) {
     console.log("SKIPPING MIDDLEWARE FOR:", pathname)
     return NextResponse.next()
   }
@@ -89,7 +89,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Explicitly exclude chat-image, photo-mix and their subpaths
-    "/((?!api|_next|favicon.ico|sitemap.xml|robots.txt|images|docs|chat-image|photo-mix).*)",
+    // Explicitly exclude chat-image, form-image, photo-mix and their subpaths
+    "/((?!api|_next|favicon.ico|sitemap.xml|robots.txt|images|docs|chat-image|form-image|photo-mix).*)",
   ],
 }
