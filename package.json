@@ -14,6 +14,10 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --ignore-path .gitignore --write .",
+    "format:check": "prettier --ignore-path .gitignore --check .",
+    "format:staged": "prettier --write $(git diff --cached --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | tr '\\n' ' ')",
+    "check": "pnpm run format:check && pnpm run lint",
+    "fix": "pnpm run format && pnpm run lint:fix",
     "migrate": "pnpm exec prisma migrate dev",
     "postinstall": "prisma generate"
   },

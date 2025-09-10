@@ -29,7 +29,9 @@ Todas as respostas seguem o padrão:
 
 ```json
 {
-  "data": { /* dados da operação */ },
+  "data": {
+    /* dados da operação */
+  },
   "error": null
 }
 ```
@@ -46,33 +48,33 @@ Permite criar uma cobrança (checkout) com múltiplos produtos para seu cliente.
 
 #### Parâmetros Obrigatórios
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| frequency | enum<string> | `ONE_TIME` ou `MULTIPLE_PAYMENTS` |
-| methods | string[] | Array com métodos de pagamento. Atualmente: `["PIX"]` |
-| products | object[] | Lista de produtos (mínimo 1) |
-| returnUrl | string | URL de retorno (quando cliente clica "Voltar") |
-| completionUrl | string | URL de finalização (após pagamento concluído) |
+| Campo         | Tipo         | Descrição                                             |
+| ------------- | ------------ | ----------------------------------------------------- |
+| frequency     | enum<string> | `ONE_TIME` ou `MULTIPLE_PAYMENTS`                     |
+| methods       | string[]     | Array com métodos de pagamento. Atualmente: `["PIX"]` |
+| products      | object[]     | Lista de produtos (mínimo 1)                          |
+| returnUrl     | string       | URL de retorno (quando cliente clica "Voltar")        |
+| completionUrl | string       | URL de finalização (após pagamento concluído)         |
 
 #### Estrutura do Produto
 
-| Campo | Tipo | Obrigatório | Descrição |
-|-------|------|-------------|-----------|
-| externalId | string | Sim | ID único do produto em seu sistema |
-| name | string | Sim | Nome do produto |
-| description | string | Não | Descrição do produto |
-| quantity | integer | Sim | Quantidade (≥ 1) |
-| price | integer | Sim | Preço unitário em centavos (≥ 100) |
+| Campo       | Tipo    | Obrigatório | Descrição                          |
+| ----------- | ------- | ----------- | ---------------------------------- |
+| externalId  | string  | Sim         | ID único do produto em seu sistema |
+| name        | string  | Sim         | Nome do produto                    |
+| description | string  | Não         | Descrição do produto               |
+| quantity    | integer | Sim         | Quantidade (≥ 1)                   |
+| price       | integer | Sim         | Preço unitário em centavos (≥ 100) |
 
 #### Parâmetros Opcionais
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| customerId | string | ID de cliente já cadastrado |
-| customer | object | Dados do cliente (name, cellphone, email, taxId) |
-| allowCoupons | boolean | Permite uso de cupons (padrão: false) |
-| coupons | string[] | Lista de cupons disponíveis (máx. 50) |
-| externalId | string | ID único da cobrança em seu sistema |
+| Campo        | Tipo     | Descrição                                        |
+| ------------ | -------- | ------------------------------------------------ |
+| customerId   | string   | ID de cliente já cadastrado                      |
+| customer     | object   | Dados do cliente (name, cellphone, email, taxId) |
+| allowCoupons | boolean  | Permite uso de cupons (padrão: false)            |
+| coupons      | string[] | Lista de cupons disponíveis (máx. 50)            |
+| externalId   | string   | ID único da cobrança em seu sistema              |
 
 #### Exemplo de Request
 
@@ -102,7 +104,7 @@ Permite criar uma cobrança (checkout) com múltiplos produtos para seu cliente.
 
 #### Response
 
-```json
+````json
 {
   "data": {
     "id": "bill_123456",
@@ -169,7 +171,7 @@ Se informado, todos os campos são obrigatórios:
     "taxId": "123.456.789-01"
   }
 }
-```
+````
 
 #### Response
 
@@ -199,9 +201,9 @@ Verifica o status atual de um QRCode PIX.
 
 #### Query Parameters
 
-| Campo | Tipo | Obrigatório | Descrição |
-|-------|------|-------------|-----------|
-| id | string | Sim | ID do QRCode PIX |
+| Campo | Tipo   | Obrigatório | Descrição        |
+| ----- | ------ | ----------- | ---------------- |
+| id    | string | Sim         | ID do QRCode PIX |
 
 #### Response
 
@@ -231,9 +233,9 @@ Simula o pagamento de um QRCode PIX no ambiente de desenvolvimento.
 
 #### Query Parameters
 
-| Campo | Tipo | Obrigatório | Descrição |
-|-------|------|-------------|-----------|
-| id | string | Sim | ID do QRCode PIX |
+| Campo | Tipo   | Obrigatório | Descrição        |
+| ----- | ------ | ----------- | ---------------- |
+| id    | string | Sim         | ID do QRCode PIX |
 
 #### Body
 
@@ -245,7 +247,6 @@ Simula o pagamento de um QRCode PIX no ambiente de desenvolvimento.
 
 **Nota:** Esta funcionalidade só funciona em ambiente de desenvolvimento (devMode).
 
-
 ---
 
 ## Webhooks
@@ -255,7 +256,7 @@ Webhooks permitem receber notificações em tempo real sobre eventos na AbacateP
 ### Configuração
 
 1. Acesse o dashboard da AbacatePay
-2. Navegue para **Integrar** → **Webhooks**  
+2. Navegue para **Integrar** → **Webhooks**
 3. Configure:
    - **Nome**: Identificador do webhook
    - **URL**: Endpoint HTTPS que receberá as notificações
@@ -272,18 +273,18 @@ https://seusite.com/webhook?webhookSecret=seu_secret_aqui
 ### Validação
 
 ```javascript
-app.post('/webhook/abacatepay', (req, res) => {
-  const { webhookSecret } = req.query;
-  
+app.post("/webhook/abacatepay", (req, res) => {
+  const { webhookSecret } = req.query
+
   if (webhookSecret !== process.env.WEBHOOK_SECRET) {
-    return res.status(401).json({ error: 'Invalid webhook secret' });
+    return res.status(401).json({ error: "Invalid webhook secret" })
   }
-  
-  const event = req.body;
-  console.log('Webhook recebido:', event);
-  
-  res.status(200).json({ received: true });
-});
+
+  const event = req.body
+  console.log("Webhook recebido:", event)
+
+  res.status(200).json({ received: true })
+})
 ```
 
 ### Eventos Suportados
@@ -293,6 +294,7 @@ app.post('/webhook/abacatepay', (req, res) => {
 Disparado quando um pagamento é confirmado.
 
 **PIX QRCode:**
+
 ```json
 {
   "data": {
@@ -314,6 +316,7 @@ Disparado quando um pagamento é confirmado.
 ```
 
 **Cobrança:**
+
 ```json
 {
   "data": {
