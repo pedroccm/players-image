@@ -55,6 +55,8 @@ async function applyLogosToImage(
   userName?: string,
   gameLocation?: string,
   gameDateTime?: string,
+  homeTeam?: string,
+  awayTeam?: string,
   hasPremium: boolean = false
 ): Promise<{
   finalImage: string
@@ -64,6 +66,8 @@ async function applyLogosToImage(
   console.log("🎨 === STARTING OVERLAY APPLICATION ===")
   console.log("📊 Input parameters:", {
     userName,
+    homeTeam,
+    awayTeam,
     gameLocation,
     gameDateTime,
     imageLength: base64Image.length,
@@ -112,23 +116,35 @@ async function applyLogosToImage(
       .png()
       .toBuffer()
 
-    // Logo paths
-    const portuguesaLogoPath = path.join(
-      process.cwd(),
-      "public",
-      "images",
-      "portuguesa.png"
-    )
-    const spfcLogoPath = path.join(
-      process.cwd(),
-      "public",
-      "images",
-      "spfc.png"
-    )
+    // Dynamic logo paths based on selected teams
+    const getTeamLogoPath = (teamId?: string): string => {
+      if (!teamId) {
+        // Fallback to default portuguesa if no team selected
+        return path.join(process.cwd(), "public", "images", "portuguesa.png")
+      }
+      
+      // First, try with SVG extension
+      const svgPath = path.join(process.cwd(), "public", "escudos_2025", `${teamId}.svg`)
+      const pngPath = path.join(process.cwd(), "public", "escudos_2025", `${teamId}.png`)
+      
+      // Check which file exists (both SVG and PNG are supported by Sharp)
+      const fs = require('fs')
+      if (fs.existsSync(svgPath)) {
+        return svgPath
+      } else if (fs.existsSync(pngPath)) {
+        return pngPath
+      } else {
+        console.warn(`❌ Team logo not found for: ${teamId}, using fallback`)
+        return path.join(process.cwd(), "public", "images", "portuguesa.png")
+      }
+    }
+
+    const homeTeamLogoPath = getTeamLogoPath(homeTeam)
+    const awayTeamLogoPath = getTeamLogoPath(awayTeam)
 
     console.log("🏆 Loading logos:", {
-      portuguesa: portuguesaLogoPath,
-      spfc: spfcLogoPath,
+      homeTeam: homeTeamLogoPath,
+      awayTeam: awayTeamLogoPath,
     })
 
     // Fixed logo size to 70x70 pixels
@@ -136,7 +152,7 @@ async function applyLogosToImage(
     console.log("📏 Logo size fixed:", logoSize, "px")
 
     // Resize logos
-    const portuguesaLogo = await sharp(portuguesaLogoPath)
+    const homeTeamLogo = await sharp(homeTeamLogoPath)
       .resize(logoSize, logoSize, {
         fit: "contain",
         background: { r: 0, g: 0, b: 0, alpha: 0 },
@@ -144,7 +160,7 @@ async function applyLogosToImage(
       .png()
       .toBuffer()
 
-    const spfcLogo = await sharp(spfcLogoPath)
+    const awayTeamLogo = await sharp(awayTeamLogoPath)
       .resize(logoSize, logoSize, {
         fit: "contain",
         background: { r: 0, g: 0, b: 0, alpha: 0 },
@@ -153,8 +169,8 @@ async function applyLogosToImage(
       .toBuffer()
 
     console.log("✅ Logos processed successfully:", {
-      portuguesaSize: portuguesaLogo.length,
-      spfcSize: spfcLogo.length,
+      homeTeamSize: homeTeamLogo.length,
+      awayTeamSize: awayTeamLogo.length,
     })
 
     // Generate text overlays using Letter-Image API
@@ -273,12 +289,12 @@ async function applyLogosToImage(
       },
       // Logos
       {
-        input: portuguesaLogo,
+        input: homeTeamLogo,
         top: 1059, // y: 1059
         left: 50, // x: 50 (moved 1px left from 51)
       },
       {
-        input: spfcLogo,
+        input: awayTeamLogo,
         top: 1145, // y: 1145
         left: 50, // x: 50 (moved 1px left from 51)
       },
@@ -384,6 +400,8 @@ export async function generateImageWithTextImages(
   userName?: string,
   gameLocation?: string,
   gameDateTime?: string,
+  homeTeam?: string,
+  awayTeam?: string,
   hasPremium: boolean = false
 ): Promise<{
   finalImage: string
@@ -438,6 +456,8 @@ export async function generateImageWithTextImages(
       userName,
       gameLocation,
       gameDateTime,
+      homeTeam,
+      awayTeam,
       hasPremium
     )
 
@@ -454,6 +474,8 @@ export async function generateImage(
   userName?: string,
   gameLocation?: string,
   gameDateTime?: string,
+  homeTeam?: string,
+  awayTeam?: string,
   hasPremium: boolean = false
 ): Promise<string> {
   console.log("🚀 === GENERATE IMAGE CALLED ===")
@@ -539,6 +561,8 @@ export async function generateImage(
       userName,
       gameLocation,
       gameDateTime,
+      homeTeam,
+      awayTeam,
       hasPremium
     )
     console.log(

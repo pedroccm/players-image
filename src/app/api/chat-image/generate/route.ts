@@ -6,9 +6,6 @@ import { generateImageWithTextImages } from "@/lib/aiml"
 
 export async function POST(request: NextRequest) {
   console.log("=== CHAT IMAGE GENERATE API CALLED ===")
-  console.log("🌍 Environment:", process.env.NODE_ENV)
-  console.log("🔑 AIML_API_KEY exists:", !!process.env.AIML_API_KEY)
-
   try {
     const {
       playerImageUrl,
@@ -17,6 +14,8 @@ export async function POST(request: NextRequest) {
       userName,
       gameLocation,
       gameDateTime,
+      homeTeam,
+      awayTeam,
       hasPremium,
     } = await request.json()
 
@@ -58,6 +57,8 @@ export async function POST(request: NextRequest) {
       userName,
       gameLocation,
       gameDateTime,
+      homeTeam,
+      awayTeam,
       hasPremium
     )
 

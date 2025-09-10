@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FormBackgroundSelector } from "./form-background-selector"
 import { FormImageUpload } from "./form-image-upload"
+import { TeamSelector } from "./team-selector"
 
 const BACKGROUND_OPTIONS = [
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg.png",
@@ -29,6 +30,8 @@ interface FormData {
   customPrompt: string
   gameLocation: string
   gameDateTime: string
+  homeTeam: string
+  awayTeam: string
 }
 
 export function FormInterface() {
@@ -39,6 +42,8 @@ export function FormInterface() {
     customPrompt: "",
     gameLocation: "",
     gameDateTime: "",
+    homeTeam: "",
+    awayTeam: "",
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
@@ -84,6 +89,14 @@ export function FormInterface() {
       toast.error("Data/hora do jogo é obrigatória")
       return
     }
+    if (!formData.homeTeam) {
+      toast.error("Seu time é obrigatório")
+      return
+    }
+    if (!formData.awayTeam) {
+      toast.error("Adversário é obrigatório")
+      return
+    }
 
     setIsGenerating(true)
 
@@ -100,6 +113,8 @@ export function FormInterface() {
           userName: formData.userName,
           gameLocation: formData.gameLocation,
           gameDateTime: formData.gameDateTime,
+          homeTeam: formData.homeTeam,
+          awayTeam: formData.awayTeam,
           hasPremium,
         }),
       })
@@ -188,7 +203,9 @@ export function FormInterface() {
     formData.playerImageUrl &&
     formData.selectedBackgroundUrl &&
     formData.gameLocation.trim() &&
-    formData.gameDateTime.trim()
+    formData.gameDateTime.trim() &&
+    formData.homeTeam &&
+    formData.awayTeam
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -210,13 +227,23 @@ export function FormInterface() {
               />
             </div>
 
-            {/* Upload da foto */}
+            {/* Seu Time */}
             <div className="space-y-2">
-              <Label>Sua Foto *</Label>
-              <FormImageUpload
-                label="Foto do Jogador"
-                onImageUploaded={handlePlayerImageUploaded}
-                currentImageUrl={formData.playerImageUrl}
+              <Label>Seu Time *</Label>
+              <TeamSelector
+                value={formData.homeTeam}
+                onValueChange={(teamId) => updateFormData("homeTeam", teamId)}
+                placeholder="Selecione seu time..."
+              />
+            </div>
+
+            {/* Adversário */}
+            <div className="space-y-2">
+              <Label>Adversário *</Label>
+              <TeamSelector
+                value={formData.awayTeam}
+                onValueChange={(teamId) => updateFormData("awayTeam", teamId)}
+                placeholder="Selecione o adversário..."
               />
             </div>
 
@@ -230,17 +257,13 @@ export function FormInterface() {
               />
             </div>
 
-            {/* Prompt personalizado */}
+            {/* Upload da foto */}
             <div className="space-y-2">
-              <Label htmlFor="customPrompt">
-                Como Combinar as Imagens (opcional)
-              </Label>
-              <Textarea
-                id="customPrompt"
-                value={formData.customPrompt}
-                onChange={(e) => updateFormData("customPrompt", e.target.value)}
-                placeholder="Ex: remova o fundo e coloque o jogador em destaque, misture as duas imagens..."
-                rows={3}
+              <Label>Sua Foto *</Label>
+              <FormImageUpload
+                label="Foto do Jogador"
+                onImageUploaded={handlePlayerImageUploaded}
+                currentImageUrl={formData.playerImageUrl}
               />
             </div>
 
@@ -265,6 +288,20 @@ export function FormInterface() {
                 onChange={(e) => updateFormData("gameDateTime", e.target.value)}
                 placeholder="Ex: 15/12/2024 - 16:00"
                 required
+              />
+            </div>
+
+            {/* Prompt personalizado */}
+            <div className="space-y-2">
+              <Label htmlFor="customPrompt">
+                Como Combinar as Imagens (opcional)
+              </Label>
+              <Textarea
+                id="customPrompt"
+                value={formData.customPrompt}
+                onChange={(e) => updateFormData("customPrompt", e.target.value)}
+                placeholder="Ex: remova o fundo e coloque o jogador em destaque, misture as duas imagens..."
+                rows={3}
               />
             </div>
 
