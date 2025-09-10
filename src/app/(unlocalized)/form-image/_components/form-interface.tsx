@@ -95,6 +95,7 @@ export function FormInterface() {
       const allUrls: string[] = []
 
       // Make multiple calls to get multiple backgrounds progressively
+      // Only proceed to next call if previous was successful
       for (let i = 1; i <= maxBackgrounds; i++) {
         try {
           console.log(`🌐 Making API call ${i}/${maxBackgrounds}...`)
@@ -127,10 +128,13 @@ export function FormInterface() {
             }
           } else {
             console.error(`❌ Call ${i} failed:`, data.error)
+            // Stop making further calls if this one failed
+            break
           }
         } catch (error) {
           console.error(`❌ API call ${i} error:`, error)
-          // Continue to next call
+          // Stop making further calls if this one failed
+          break
         }
       }
 
