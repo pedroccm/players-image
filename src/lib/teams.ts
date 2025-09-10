@@ -134,5 +134,11 @@ export const ALL_TEAMS: Team[] = [
   { id: "zumbi", name: "Zumbi", logoPath: "/escudos_2025/zumbi.svg" },
 ]
 
-// Lista filtrada apenas com times que têm logos em SVG
-export const TEAMS: Team[] = ALL_TEAMS.filter(team => team.logoPath.endsWith('.svg'))
+// Lista filtrada apenas com times que têm logos em PNG
+export const TEAMS: Team[] = ALL_TEAMS.filter(team => team.logoPath.endsWith('.png'))
+
+// Helper function to get team name by ID for API calls
+export const getTeamNameById = (teamId: string): string => {
+  const team = ALL_TEAMS.find(t => t.id === teamId)
+  return team?.name?.toLowerCase().replace(/\s+/g, '-').replace(/[áàâã]/g, 'a').replace(/[éê]/g, 'e').replace(/[íî]/g, 'i').replace(/[óôõ]/g, 'o').replace(/[úû]/g, 'u').replace(/ç/g, 'c') || teamId
+}
