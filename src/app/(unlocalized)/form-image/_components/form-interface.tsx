@@ -59,7 +59,6 @@ export function FormInterface() {
   const [generatedBackgrounds, setGeneratedBackgrounds] = useState<string[]>([])
   const [isGeneratingBackgrounds, setIsGeneratingBackgrounds] = useState(false)
   const [backgroundsError, setBackgroundsError] = useState<string | null>(null)
-  const [useStaticBackgrounds, setUseStaticBackgrounds] = useState(true)
   const [backgroundProgress, setBackgroundProgress] = useState({ current: 0, total: 3 })
 
   const updateFormData = (field: keyof FormData, value: string) => {
@@ -78,9 +77,9 @@ export function FormInterface() {
   const generateBackgroundsForTeam = useCallback(async (teamId: string) => {
     setIsGeneratingBackgrounds(true)
     setBackgroundsError(null)
-    setUseStaticBackgrounds(false)
-    setGeneratedBackgrounds([]) // Clear previous backgrounds
-    updateFormData("selectedBackgroundUrl", "") // Clear selection
+    setGeneratedBackgrounds([]) // Clear previous generated backgrounds only
+    // Keep useStaticBackgrounds as false to show combined backgrounds
+    // Don't clear selection - user might have selected a static background
 
     try {
       console.log("🏆 Generating backgrounds for team:", teamId)
@@ -144,8 +143,8 @@ export function FormInterface() {
       setBackgroundsError(
         error instanceof Error ? error.message : "Erro de conexão"
       )
-      setUseStaticBackgrounds(true) // Fallback to static backgrounds
-      toast.error("Erro ao gerar backgrounds. Usando backgrounds padrão.")
+      // Keep static backgrounds available even if generation fails
+      toast.error("Erro ao gerar backgrounds personalizados. Backgrounds padrão disponíveis.")
     } finally {
       setIsGeneratingBackgrounds(false)
     }
@@ -156,9 +155,8 @@ export function FormInterface() {
     if (formData.homeTeam) {
       generateBackgroundsForTeam(formData.homeTeam)
     } else {
-      // Reset to static backgrounds when no team selected
+      // Clear generated backgrounds when no team selected, keep static ones
       setGeneratedBackgrounds([])
-      setUseStaticBackgrounds(true)
       setBackgroundsError(null)
     }
   }, [formData.homeTeam, generateBackgroundsForTeam])
@@ -359,13 +357,11 @@ export function FormInterface() {
                       Progresso: {backgroundProgress.current}/{backgroundProgress.total}
                     </p>
                   </div>
-                  {generatedBackgrounds.length > 0 && (
-                    <FormBackgroundSelector
-                      backgrounds={generatedBackgrounds}
-                      onSelect={handleBackgroundSelected}
-                      selectedBackground={formData.selectedBackgroundUrl}
-                    />
-                  )}
+                  <FormBackgroundSelector
+                    backgrounds={[...BACKGROUND_OPTIONS, ...generatedBackgrounds]}
+                    onSelect={handleBackgroundSelected}
+                    selectedBackground={formData.selectedBackgroundUrl}
+                  />
                 </div>
               ) : backgroundsError ? (
                 <div className="text-center py-8 border-2 border-dashed border-red-200 rounded-lg bg-red-50">
@@ -385,18 +381,14 @@ export function FormInterface() {
                 </div>
               ) : (
                 <FormBackgroundSelector
-                  backgrounds={
-                    useStaticBackgrounds
-                      ? BACKGROUND_OPTIONS
-                      : generatedBackgrounds
-                  }
+                  backgrounds={[...BACKGROUND_OPTIONS, ...generatedBackgrounds]}
                   onSelect={handleBackgroundSelected}
                   selectedBackground={formData.selectedBackgroundUrl}
                 />
               )}
-              {!useStaticBackgrounds && generatedBackgrounds.length > 0 && (
+              {generatedBackgrounds.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  ✨ Backgrounds personalizados gerados para o seu time
+                  ✨ {generatedBackgrounds.length} backgrounds personalizados adicionados
                 </p>
               )}
             </div>
