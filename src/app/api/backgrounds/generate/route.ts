@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     // Make only 1 API call to avoid timeout, frontend will call multiple times
     try {
       console.log("🌐 Making single API call...")
-      
+
       const requestBody = {
         team_name: teamName,
         size: "1024x1536",
@@ -47,12 +47,15 @@ export async function POST(request: NextRequest) {
       )
 
       console.log("🌐 API response status:", response.status)
-      console.log("🌐 API response headers:", Object.fromEntries(response.headers.entries()))
+      console.log(
+        "🌐 API response headers:",
+        Object.fromEntries(response.headers.entries())
+      )
 
       if (!response.ok) {
         const errorText = await response.text()
         console.error("❌ External API error response:", errorText)
-        
+
         // Parse error response to provide better user feedback
         let errorMessage = `External API error: ${response.status}`
         try {
@@ -63,7 +66,7 @@ export async function POST(request: NextRequest) {
         } catch {
           errorMessage += ` - ${errorText}`
         }
-        
+
         throw new Error(errorMessage)
       }
 
