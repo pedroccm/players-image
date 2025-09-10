@@ -15,63 +15,49 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Call external API 3 times sequentially to get 3 backgrounds
-    const allUrls: string[] = []
+    // Make only 1 API call to avoid timeout, frontend will call multiple times
+    try {
+      console.log("🌐 Making single API call...")
 
-    for (let i = 1; i <= 3; i++) {
-      try {
-        console.log(`🌐 Making API call ${i}/3...`)
-
-        const response = await fetch(
-          "https://letter-image.onrender.com/generate-team-backgrounds",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify({
-              team_name: teamName,
-              size: "1024x1536",
-              quality: "low",
-              count: 1,
-            }),
-          }
-        )
-
-        console.log(`🌐 API call ${i} response status:`, response.status)
-
-        if (!response.ok) {
-          console.error(`❌ API call ${i} failed with status:`, response.status)
-          continue // Try next call
+      const response = await fetch(
+        "https://letter-image.onrender.com/generate-team-backgrounds",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            team_name: teamName,
+            size: "1024x1536",
+            quality: "low",
+            count: 1,
+          }),
         }
+      )
 
-        const data = await response.json()
-        console.log(`📊 API call ${i} data:`, data)
+      console.log("🌐 API response status:", response.status)
 
-        if (data.urls && Array.isArray(data.urls)) {
-          allUrls.push(...data.urls)
-          console.log(
-            `✅ API call ${i} successful, total URLs: ${allUrls.length}`
-          )
-        } else {
-          console.error(`❌ API call ${i} returned invalid data format`)
-        }
-      } catch (error) {
-        console.error(`❌ API call ${i} error:`, error)
-        // Continue to next call
+      if (!response.ok) {
+        throw new Error(`External API error: ${response.status}`)
       }
-    }
 
-    if (allUrls.length > 0) {
-      return Response.json({
-        success: true,
-        count: allUrls.length,
-        team_name: teamName,
-        urls: allUrls,
-      })
-    } else {
-      throw new Error("All 3 API calls failed")
+      const data = await response.json()
+      console.log("📊 API data:", data)
+
+      if (data.urls && Array.isArray(data.urls)) {
+        return Response.json({
+          success: true,
+          count: data.urls.length,
+          team_name: teamName,
+          urls: data.urls,
+        })
+      } else {
+        throw new Error("Invalid response format from external API")
+      }
+    } catch (error) {
+      console.error("❌ API call error:", error)
+      throw error
     }
   } catch (error) {
     console.error("❌ Error generating backgrounds:", error)

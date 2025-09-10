@@ -60,6 +60,7 @@ export function FormInterface() {
   const [isGeneratingBackgrounds, setIsGeneratingBackgrounds] = useState(false)
   const [backgroundsError, setBackgroundsError] = useState<string | null>(null)
   const [useStaticBackgrounds, setUseStaticBackgrounds] = useState(true)
+  const [backgroundProgress, setBackgroundProgress] = useState({ current: 0, total: 3 })
 
   const updateFormData = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -73,11 +74,13 @@ export function FormInterface() {
     updateFormData("selectedBackgroundUrl", backgroundUrl)
   }
 
-  // Function to generate backgrounds for selected team
+  // Function to generate backgrounds for selected team (progressively)
   const generateBackgroundsForTeam = useCallback(async (teamId: string) => {
     setIsGeneratingBackgrounds(true)
     setBackgroundsError(null)
     setUseStaticBackgrounds(false)
+    setGeneratedBackgrounds([]) // Clear previous backgrounds
+    updateFormData("selectedBackgroundUrl", "") // Clear selection
 
     try {
       console.log("🏆 Generating backgrounds for team:", teamId)
@@ -86,23 +89,56 @@ export function FormInterface() {
       const teamName = getTeamNameById(teamId)
       console.log("📝 Team name for API:", teamName)
 
-      const response = await fetch("/api/backgrounds/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamName }),
-      })
+      const maxBackgrounds = 3
+      let successCount = 0
+      const allUrls: string[] = []
 
-      const data = await response.json()
-      console.log("📊 Background generation response:", data)
+      // Make multiple calls to get multiple backgrounds progressively
+      for (let i = 1; i <= maxBackgrounds; i++) {
+        try {
+          console.log(`🌐 Making API call ${i}/${maxBackgrounds}...`)
+          
+          // Update progress
+          setBackgroundProgress({ current: i, total: maxBackgrounds })
 
-      if (data.success && data.urls && Array.isArray(data.urls)) {
-        setGeneratedBackgrounds(data.urls)
-        // Clear previous background selection
-        updateFormData("selectedBackgroundUrl", "")
-        toast.success(`${data.count} backgrounds gerados para ${teamName}!`)
-      } else {
-        throw new Error(data.error || "Erro ao gerar backgrounds")
+          const response = await fetch("/api/backgrounds/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ teamName }),
+          })
+
+          const data = await response.json()
+          console.log(`📊 Background generation response ${i}:`, data)
+
+          if (data.success && data.urls && Array.isArray(data.urls)) {
+            allUrls.push(...data.urls)
+            successCount++
+            
+            // Update backgrounds progressively as they arrive
+            setGeneratedBackgrounds([...allUrls])
+            
+            console.log(`✅ Call ${i} successful, total backgrounds: ${allUrls.length}`)
+            
+            // Show success message for first background
+            if (i === 1) {
+              toast.success(`Backgrounds sendo gerados para ${teamName}!`)
+            }
+          } else {
+            console.error(`❌ Call ${i} failed:`, data.error)
+          }
+        } catch (error) {
+          console.error(`❌ API call ${i} error:`, error)
+          // Continue to next call
+        }
       }
+
+      // Final status
+      if (allUrls.length > 0) {
+        toast.success(`${allUrls.length} backgrounds gerados com sucesso!`)
+      } else {
+        throw new Error("Todas as chamadas falharam")
+      }
+
     } catch (error) {
       console.error("❌ Error generating backgrounds:", error)
       setBackgroundsError(
@@ -313,11 +349,23 @@ export function FormInterface() {
             <div className="space-y-2">
               <Label>Escolha o Fundo *</Label>
               {isGeneratingBackgrounds ? (
-                <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                  <Loader2 className="animate-spin mx-auto mb-2" size={24} />
-                  <p className="text-sm text-muted-foreground">
-                    Gerando backgrounds personalizados...
-                  </p>
+                <div className="space-y-4">
+                  <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <Loader2 className="animate-spin mx-auto mb-2" size={24} />
+                    <p className="text-sm text-muted-foreground">
+                      Gerando backgrounds personalizados...
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Progresso: {backgroundProgress.current}/{backgroundProgress.total}
+                    </p>
+                  </div>
+                  {generatedBackgrounds.length > 0 && (
+                    <FormBackgroundSelector
+                      backgrounds={generatedBackgrounds}
+                      onSelect={handleBackgroundSelected}
+                      selectedBackground={formData.selectedBackgroundUrl}
+                    />
+                  )}
                 </div>
               ) : backgroundsError ? (
                 <div className="text-center py-8 border-2 border-dashed border-red-200 rounded-lg bg-red-50">
