@@ -6,6 +6,9 @@ import { generateImageWithTextImages } from "@/lib/aiml"
 
 export async function POST(request: NextRequest) {
   console.log("=== CHAT IMAGE GENERATE API CALLED ===")
+  console.log("🌍 Environment:", process.env.NODE_ENV)
+  console.log("🔑 AIML_API_KEY exists:", !!process.env.AIML_API_KEY)
+  
   try {
     const {
       playerImageUrl,
@@ -44,6 +47,10 @@ export async function POST(request: NextRequest) {
       "Combine the two images by cutting out the player photo (completely removing its background) and placing it on top of the background image, without blending, keeping the player sharp and clearly in the foreground."
     const imageUrls = [playerImageUrl, backgroundImageUrl]
 
+    console.log("🚀 About to call generateImageWithTextImages...")
+    console.log("📝 Final prompt:", prompt)
+    console.log("🖼️ Image URLs count:", imageUrls.length)
+
     // Generate image using AIML API
     const result = await generateImageWithTextImages(
       prompt,
@@ -53,6 +60,8 @@ export async function POST(request: NextRequest) {
       gameDateTime,
       hasPremium
     )
+
+    console.log("✅ generateImageWithTextImages completed successfully")
 
     console.log("Image generated successfully for:", userName)
 
@@ -64,7 +73,11 @@ export async function POST(request: NextRequest) {
       userName,
     })
   } catch (error) {
-    console.error("Error in chat image generation:", error)
+    console.error("❌ Error in chat image generation:", error)
+    console.error("❌ Error type:", typeof error)
+    console.error("❌ Error name:", error instanceof Error ? error.name : "Unknown")
+    console.error("❌ Error message:", error instanceof Error ? error.message : String(error))
+    console.error("❌ Error stack:", error instanceof Error ? error.stack : "No stack trace")
 
     // Check if it's a 422 content policy error
     if (error instanceof Error && error.message.includes("422")) {
