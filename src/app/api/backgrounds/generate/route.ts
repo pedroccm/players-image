@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
             "User-Agent": "players-image-app/1.0",
           },
           body: JSON.stringify(requestBody),
-          signal: AbortSignal.timeout(30000), // 30 second timeout
+          signal: AbortSignal.timeout(120000), // 2 minute timeout
         }
       )
 
