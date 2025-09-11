@@ -5,8 +5,20 @@ import { toast } from "sonner"
 import { CheckCircle, Copy, Loader2, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface PaymentModalProps {
   userName: string
@@ -33,7 +45,7 @@ export function PaymentModal({
 
   const createPayment = async () => {
     setIsCreatingPayment(true)
-    
+
     try {
       const response = await fetch("/api/abacatepay/create-qrcode", {
         method: "POST",
@@ -74,7 +86,9 @@ export function PaymentModal({
       const data = await response.json()
 
       if (data.success) {
-        toast.success("Pagamento simulado! Clique em 'Verificar Pagamento' para confirmar.")
+        toast.success(
+          "Pagamento simulado! Clique em 'Verificar Pagamento' para confirmar."
+        )
       } else {
         throw new Error(data.error)
       }
@@ -100,7 +114,9 @@ export function PaymentModal({
           toast.success("Pagamento confirmado!")
           onPaymentCompleted()
         } else {
-          toast.warning(`Pagamento ainda não confirmado. Status: ${data.data.status}`)
+          toast.warning(
+            `Pagamento ainda não confirmado. Status: ${data.data.status}`
+          )
         }
       } else {
         throw new Error(data.error)

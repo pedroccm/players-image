@@ -3,12 +3,17 @@
 import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { ChevronLeft, ChevronRight, Clock, Image as ImageIcon, Eye } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Image as ImageIcon,
+} from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -22,7 +27,7 @@ interface BananaImage {
   prompt: string
   original_image_url: string
   generated_image_url: string | null
-  status: 'processing' | 'success' | 'failed' | 'error'
+  status: "processing" | "success" | "failed" | "error"
   processing_time_ms: number | null
   error_message: string | null
   generated_image_size: number | null
@@ -41,20 +46,20 @@ export default function BananaImageListPage() {
   const [records, setRecords] = useState<BananaImage[]>([])
   const [pagination, setPagination] = useState<PaginationData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
-  const fetchRecords = async (page = 1, status = 'all') => {
+  const fetchRecords = async (page = 1, status = "all") => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: '12',
+        limit: "12",
       })
-      
-      if (status !== 'all') {
-        params.append('status', status)
+
+      if (status !== "all") {
+        params.append("status", status)
       }
 
       const response = await fetch(`/api/banana-image/list?${params}`)
@@ -65,7 +70,7 @@ export default function BananaImageListPage() {
         setPagination(data.pagination)
       }
     } catch (error) {
-      console.error('Error fetching records:', error)
+      console.error("Error fetching records:", error)
     } finally {
       setLoading(false)
     }
@@ -86,18 +91,18 @@ export default function BananaImageListPage() {
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      success: { variant: 'default' as const, label: 'Sucesso' },
-      processing: { variant: 'secondary' as const, label: 'Processando' },
-      failed: { variant: 'destructive' as const, label: 'Falha' },
-      error: { variant: 'destructive' as const, label: 'Erro' },
+      success: { variant: "default" as const, label: "Sucesso" },
+      processing: { variant: "secondary" as const, label: "Processando" },
+      failed: { variant: "destructive" as const, label: "Falha" },
+      error: { variant: "destructive" as const, label: "Erro" },
     }
-    
+
     const config = variants[status as keyof typeof variants] || variants.error
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
 
   const formatFileSize = (bytes: number | null) => {
-    if (!bytes) return 'N/A'
+    if (!bytes) return "N/A"
     const kb = bytes / 1024
     return kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb.toFixed(1)} KB`
   }
@@ -105,14 +110,19 @@ export default function BananaImageListPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-primary/10 border-b px-6 py-4">
-        <h1 className="text-xl font-semibold">Banana Image - Histórico de Gerações</h1>
+        <h1 className="text-xl font-semibold">
+          Banana Image - Histórico de Gerações
+        </h1>
       </div>
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Filters */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
-            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+            <Select
+              value={statusFilter}
+              onValueChange={handleStatusFilterChange}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
@@ -128,7 +138,8 @@ export default function BananaImageListPage() {
 
           {pagination && (
             <div className="text-sm text-muted-foreground">
-              {pagination.total} registro{pagination.total !== 1 ? 's' : ''} encontrado{pagination.total !== 1 ? 's' : ''}
+              {pagination.total} registro{pagination.total !== 1 ? "s" : ""}{" "}
+              encontrado{pagination.total !== 1 ? "s" : ""}
             </div>
           )}
         </div>
@@ -152,7 +163,9 @@ export default function BananaImageListPage() {
                       src={record.generated_image_url}
                       alt="Imagem gerada"
                       className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={() => setSelectedImage(record.generated_image_url!)}
+                      onClick={() =>
+                        setSelectedImage(record.generated_image_url!)
+                      }
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -163,32 +176,37 @@ export default function BananaImageListPage() {
                     {getStatusBadge(record.status)}
                   </div>
                 </div>
-                
+
                 <CardContent className="p-4">
                   <div className="space-y-2">
                     <p className="text-sm font-medium line-clamp-2">
                       {record.prompt}
                     </p>
-                    
+
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
-                      {format(new Date(record.created_at), "dd/MM/yyyy 'às' HH:mm", {
-                        locale: ptBR,
-                      })}
+                      {format(
+                        new Date(record.created_at),
+                        "dd/MM/yyyy 'às' HH:mm",
+                        {
+                          locale: ptBR,
+                        }
+                      )}
                     </div>
-                    
+
                     {record.processing_time_ms && (
                       <div className="text-xs text-muted-foreground">
-                        Processamento: {(record.processing_time_ms / 1000).toFixed(1)}s
+                        Processamento:{" "}
+                        {(record.processing_time_ms / 1000).toFixed(1)}s
                       </div>
                     )}
-                    
+
                     {record.generated_image_size && (
                       <div className="text-xs text-muted-foreground">
                         Tamanho: {formatFileSize(record.generated_image_size)}
                       </div>
                     )}
-                    
+
                     {record.error_message && (
                       <div className="text-xs text-red-600 line-clamp-2">
                         Erro: {record.error_message}
@@ -213,11 +231,11 @@ export default function BananaImageListPage() {
               <ChevronLeft className="h-4 w-4" />
               Anterior
             </Button>
-            
+
             <span className="text-sm text-muted-foreground">
               Página {pagination.page} de {pagination.pages}
             </span>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -233,7 +251,7 @@ export default function BananaImageListPage() {
 
       {/* Modal para visualizar imagem em tamanho completo */}
       {selectedImage && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedImage(null)}
         >

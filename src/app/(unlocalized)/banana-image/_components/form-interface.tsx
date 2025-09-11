@@ -14,7 +14,9 @@ export function FormInterface() {
   const [imageUrl, setImageUrl] = useState("")
   const [customPrompt, setCustomPrompt] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null)
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
+    null
+  )
 
   const handleImageUploaded = (uploadedImageUrl: string) => {
     setImageUrl(uploadedImageUrl)
@@ -61,10 +63,13 @@ export function FormInterface() {
       }
     } catch (error) {
       console.error("Error generating image:", error)
-      
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
+
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro desconhecido"
       if (errorMessage.includes("temporariamente sobrecarregado")) {
-        toast.error("Servidor temporariamente indisponível. Tente novamente em alguns minutos.")
+        toast.error(
+          "Servidor temporariamente indisponível. Tente novamente em alguns minutos."
+        )
       } else {
         toast.error("Erro ao gerar imagem. Tente novamente.")
       }

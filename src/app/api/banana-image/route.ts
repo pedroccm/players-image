@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+
+import type { NextRequest } from "next/server"
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -9,10 +10,10 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export async function POST(request: NextRequest) {
   console.log("=== BANANA IMAGE API CALLED ===")
-  
+
   const startTime = Date.now()
   let recordId: string | null = null
-  
+
   try {
     const { imageUrl, customPrompt } = await request.json()
 
@@ -24,17 +25,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (!customPrompt || !customPrompt.trim()) {
-      return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
     }
 
     console.log("Processing image:", imageUrl)
     console.log("With prompt:", customPrompt)
 
     // Get user info for tracking (optional)
-    const userIp = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+    const userIp =
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown"
     const userAgent = request.headers.get("user-agent") || "unknown"
 
     // 1. Create initial record in database
@@ -68,19 +69,22 @@ export async function POST(request: NextRequest) {
 
     console.log("Sending request to AI.ML")
 
-    const response = await fetch("https://api.aimlapi.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.AIML_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    })
+    const response = await fetch(
+      "https://api.aimlapi.com/v1/images/generations",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.AIML_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      }
+    )
 
     if (!response.ok) {
       const errorData = await response.text()
       console.error("AI.ML API error:", errorData)
-      
+
       // Update record with error
       if (recordId) {
         await supabase
@@ -92,15 +96,16 @@ export async function POST(request: NextRequest) {
           })
           .eq("id", recordId)
       }
-      
+
       if (response.status === 422) {
         return NextResponse.json({
           success: false,
           error: "content_blocked",
-          message: "Essa imagem não pôde ser processada. Por favor, tente outra.",
+          message:
+            "Essa imagem não pôde ser processada. Por favor, tente outra.",
         })
       }
-      
+
       throw new Error(`AI.ML API error: ${response.status}`)
     }
 
@@ -110,16 +115,16 @@ export async function POST(request: NextRequest) {
     // 3. Download generated image
     let imageBase64: string
     let generatedImageSize = 0
-    
+
     if (data.images?.[0]?.url) {
       const imageUrl = data.images[0].url
       console.log("Downloading image from:", imageUrl)
-      
+
       const imageResponse = await fetch(imageUrl)
-      
+
       if (!imageResponse.ok) {
         console.error("Failed to download image:", imageResponse.status)
-        
+
         // Update record with error
         if (recordId) {
           await supabase
@@ -131,18 +136,23 @@ export async function POST(request: NextRequest) {
             })
             .eq("id", recordId)
         }
-        
-        throw new Error(`Failed to download generated image: ${imageResponse.status}`)
+
+        throw new Error(
+          `Failed to download generated image: ${imageResponse.status}`
+        )
       }
-      
+
       const imageBuffer = await imageResponse.arrayBuffer()
       imageBase64 = Buffer.from(imageBuffer).toString("base64")
       generatedImageSize = imageBuffer.byteLength
-      
-      console.log("Image downloaded and converted to base64, size:", generatedImageSize)
+
+      console.log(
+        "Image downloaded and converted to base64, size:",
+        generatedImageSize
+      )
     } else {
       console.error("Unexpected response structure:", JSON.stringify(data))
-      
+
       // Update record with error
       if (recordId) {
         await supabase
@@ -154,24 +164,24 @@ export async function POST(request: NextRequest) {
           })
           .eq("id", recordId)
       }
-      
+
       throw new Error("No image generated in response")
     }
 
     // 4. Upload generated image to Supabase Storage
     const fileName = `banana-${Date.now()}-${Math.random().toString(36).substring(7)}.png`
     const filePath = `generated/${fileName}`
-    
+
     console.log("Uploading generated image to Supabase:", filePath)
-    
+
     // Convert base64 to Uint8Array for upload
     const binaryString = atob(imageBase64)
     const bytes = new Uint8Array(binaryString.length)
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i)
     }
-    
-    const { data: uploadData, error: uploadError } = await supabase.storage
+
+    const { error: uploadError } = await supabase.storage
       .from("fotos")
       .upload(filePath, bytes, {
         contentType: "image/png",
@@ -184,9 +194,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get public URL for the uploaded image
-    const { data: { publicUrl } } = supabase.storage
-      .from("fotos")
-      .getPublicUrl(filePath)
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("fotos").getPublicUrl(filePath)
 
     console.log("Generated image uploaded to:", publicUrl)
 
@@ -198,7 +208,7 @@ export async function POST(request: NextRequest) {
         processing_time_ms: Date.now() - startTime,
         generated_image_size: generatedImageSize,
       })
-      
+
       const { data: updateData, error: updateError } = await supabase
         .from("banana_images")
         .update({
@@ -230,19 +240,20 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("❌ Error in banana image generation:", error)
-    
+
     // Update record with error if we have one
     if (recordId) {
       await supabase
         .from("banana_images")
         .update({
           status: "error",
-          error_message: error instanceof Error ? error.message : "Unknown error",
+          error_message:
+            error instanceof Error ? error.message : "Unknown error",
           processing_time_ms: Date.now() - startTime,
         })
         .eq("id", recordId)
     }
-    
+
     return NextResponse.json(
       {
         success: false,

@@ -3,7 +3,13 @@
 import { Download } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 interface GeneratedImageDisplayProps {
   imageUrl: string
@@ -28,7 +34,9 @@ export function GeneratedImageDisplay({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-green-600">✅ Imagem Gerada com Sucesso!</CardTitle>
+        <CardTitle className="text-green-600">
+          ✅ Imagem Gerada com Sucesso!
+        </CardTitle>
         <CardDescription>
           Clique na imagem para ver em tamanho completo ou baixe usando o botão
         </CardDescription>
@@ -55,9 +63,12 @@ export function GeneratedImageDisplay({
             <Download className="h-4 w-4 mr-2" />
             Baixar Imagem
           </Button>
-          
+
           {!hasPremium && (
-            <Button onClick={onUpgradeToPremium} className="bg-green-600 hover:bg-green-700">
+            <Button
+              onClick={onUpgradeToPremium}
+              className="bg-green-600 hover:bg-green-700"
+            >
               💎 Upgrade Premium (R$ 3,00)
             </Button>
           )}
@@ -67,8 +78,8 @@ export function GeneratedImageDisplay({
         {!hasPremium && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
             <p className="text-sm text-blue-800">
-              <strong>💎 Versão Premium:</strong> Remova a marca d&apos;água e obtenha
-              acesso a recursos especiais por apenas R$ 3,00
+              <strong>💎 Versão Premium:</strong> Remova a marca d&apos;água e
+              obtenha acesso a recursos especiais por apenas R$ 3,00
             </p>
           </div>
         )}
@@ -76,8 +87,8 @@ export function GeneratedImageDisplay({
         {hasPremium && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
             <p className="text-sm text-green-800">
-              <strong>🎉 Premium Ativo:</strong> Sua imagem está em alta resolução
-              sem marca d&apos;água!
+              <strong>🎉 Premium Ativo:</strong> Sua imagem está em alta
+              resolução sem marca d&apos;água!
             </p>
           </div>
         )}
