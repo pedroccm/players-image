@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server"
+import type { NextRequest } from "next/server"
 
 // Store para jobs em memória (em prod seria Redis/DB)
 const jobs = new Map<
