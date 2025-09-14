@@ -1,11 +1,10 @@
 [build]
   command = "pnpm run build"
-  functions = "netlify/functions"
   publish = ".next"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[functions]
-  # Background functions podem ter até 15 minutos no Pro
-  timeout = 900
+[build.environment]
+  # Timeout para serverless functions (26s max no Pro)
+  AWS_LAMBDA_JS_RUNTIME = "nodejs18.x"
