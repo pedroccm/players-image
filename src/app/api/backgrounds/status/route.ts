@@ -1,15 +1,5 @@
 import type { NextRequest } from "next/server"
-
-// Import the jobs store from generate-async
-// Note: In production, this would be Redis/Database
-async function getJobsStore() {
-  try {
-    const { jobs } = await import("../generate-async/route")
-    return jobs
-  } catch {
-    return new Map()
-  }
-}
+import { jobs } from "@/lib/jobs-store"
 
 export async function GET(request: NextRequest) {
   const jobId = request.nextUrl.searchParams.get("jobId")
@@ -25,7 +15,6 @@ export async function GET(request: NextRequest) {
   }
 
   // Get job from memory store
-  const jobs = await getJobsStore()
   const job = jobs.get(jobId)
 
   if (!job) {
