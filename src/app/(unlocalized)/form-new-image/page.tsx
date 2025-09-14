@@ -260,12 +260,17 @@ export default function FormNewImagePage() {
             progressController = createSmartProgress(i, maxBackgrounds)
 
             // Smart endpoint selection: Netlify background function in prod, API route in dev
-            const isProduction = process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+            const isProduction =
+              process.env.NODE_ENV === "production" &&
+              typeof window !== "undefined" &&
+              window.location.hostname !== "localhost"
             const endpoint = isProduction
               ? "/.netlify/functions/generate-backgrounds-long"
               : "/api/backgrounds/generate-local"
 
-            console.log(`🚀 Using endpoint: ${endpoint} (production: ${isProduction})`)
+            console.log(
+              `🚀 Using endpoint: ${endpoint} (production: ${isProduction})`
+            )
 
             const response = await fetch(endpoint, {
               method: "POST",
