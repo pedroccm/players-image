@@ -35,12 +35,15 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   console.log("MIDDLEWARE:", pathname)
 
-  // Skip middleware for chat-image, form-image, banana-image and photo-mix routes
+  // Skip middleware for chat-image, form-image, form-new-image, banana-image, bananas-image, photo-mix and test-bg routes
   if (
     pathname.startsWith("/chat-image") ||
     pathname.startsWith("/form-image") ||
+    pathname.startsWith("/form-new-image") ||
     pathname.startsWith("/banana-image") ||
-    pathname.startsWith("/photo-mix")
+    pathname.startsWith("/bananas-image") ||
+    pathname.startsWith("/photo-mix") ||
+    pathname.startsWith("/test-bg")
   ) {
     console.log("SKIPPING MIDDLEWARE FOR:", pathname)
     return NextResponse.next()
@@ -94,7 +97,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Explicitly exclude chat-image, form-image, banana-image, photo-mix and their subpaths
-    "/((?!api|_next|favicon.ico|sitemap.xml|robots.txt|images|docs|escudos_2025|chat-image|form-image|banana-image|photo-mix).*)",
+    // Explicitly exclude chat-image, form-image, form-new-image, banana-image, bananas-image, photo-mix, test-bg and their subpaths
+    "/((?!api|_next|favicon.ico|sitemap.xml|robots.txt|images|docs|escudos_2025|bgs|chat-image|form-image|form-new-image|banana-image|bananas-image|photo-mix|test-bg).*)",
   ],
 }
