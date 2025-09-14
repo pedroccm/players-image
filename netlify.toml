@@ -5,9 +5,3 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-[functions]
-  external_node_modules = ["sharp"]
-
-[[functions]]
-  path = "netlify/functions/generate-backgrounds-long.js"
