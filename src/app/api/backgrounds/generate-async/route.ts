@@ -67,19 +67,21 @@ async function processBackgroundGeneration(
 
     console.log("✅ Status updated to processing")
 
-    // Chamar função diretamente (sem HTTP interno)
-    console.log("📞 Calling background generation directly...")
-    const { generateBackgroundForTeam } = await import("../generate-local/route")
+    // Chamar API usando URL correta do Netlify
+    console.log("📞 Calling background generation via Netlify URL...")
+    const response = await fetch(
+      "https://players-image.netlify.app/api/backgrounds/generate-local",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamName, teamId }),
+      }
+    )
 
-    // Criar mock request
-    const mockRequest = {
-      json: async () => ({ teamName, teamId })
-    } as NextRequest
+    console.log("📞 API call response status:", response.status)
 
-    const response = await generateBackgroundForTeam(mockRequest)
     const result = await response.json()
-
-    console.log("📊 Direct call result:", result)
+    console.log("📊 API call result:", result)
 
     if (result.success) {
       job.status = "completed"

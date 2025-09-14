@@ -16,7 +16,7 @@ const supabase = createClient(
 const usedBackgroundsCache = new Map<string, Set<string>>()
 
 // Função principal extraída para reutilização
-export async function generateBackgroundForTeam(request: NextRequest) {
+async function generateBackgroundForTeam(request: NextRequest) {
   console.log("=== BACKGROUNDS GENERATE LOCAL API CALLED ===")
 
   try {
