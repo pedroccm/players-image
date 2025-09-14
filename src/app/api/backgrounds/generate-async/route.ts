@@ -9,6 +9,9 @@ export async function POST(request: NextRequest) {
     // Criar job ID único
     const jobId = `${teamId || teamName}_${Date.now()}`
 
+    console.log("🔥 Creating job:", jobId)
+    console.log("Jobs store size before:", jobs.size)
+
     // Inicializar job
     jobs.set(jobId, {
       id: jobId,
@@ -16,6 +19,9 @@ export async function POST(request: NextRequest) {
       teamName,
       createdAt: new Date(),
     })
+
+    console.log("✅ Job created:", jobs.get(jobId))
+    console.log("Jobs store size after:", jobs.size)
 
     // Processar em background (não await)
     processBackgroundGeneration(jobId, teamName, teamId)
@@ -44,13 +50,22 @@ async function processBackgroundGeneration(
   teamName: string,
   teamId?: string
 ) {
+  console.log("🚀 PROCESSING STARTED for:", jobId)
+
   const job = jobs.get(jobId)
-  if (!job) return
+  if (!job) {
+    console.error("❌ Job not found in store:", jobId)
+    return
+  }
+
+  console.log("📝 Job found, starting processing:", job)
 
   try {
     // Atualizar status
     job.status = "processing"
     jobs.set(jobId, job)
+
+    console.log("✅ Status updated to processing")
 
     // Chamar API original através de HTTP interno
     const response = await fetch(
@@ -62,19 +77,26 @@ async function processBackgroundGeneration(
       }
     )
 
+    console.log("📞 API call response status:", response.status)
+
     const result = await response.json()
+    console.log("📊 API call result:", result)
 
     if (result.success) {
       job.status = "completed"
       job.result = result.urls
+      console.log("✅ Job completed successfully")
     } else {
       job.status = "failed"
       job.error = result.error
+      console.log("❌ Job failed:", result.error)
     }
   } catch (error) {
+    console.error("🔥 Processing error:", error)
     job.status = "failed"
     job.error = error instanceof Error ? error.message : "Processing failed"
   } finally {
     jobs.set(jobId, job)
+    console.log("📋 Final job state:", job)
   }
 }
