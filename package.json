@@ -18,6 +18,7 @@
     "format:staged": "prettier --write $(git diff --cached --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | tr '\\n' ' ')",
     "check": "pnpm run format:check && pnpm run lint",
     "fix": "pnpm run format && pnpm run lint:fix",
+    "safe-commit": "pnpm run fix && git add . && echo '✅ Ready for commit!'",
     "migrate": "pnpm exec prisma migrate dev",
     "postinstall": "prisma generate"
   },
