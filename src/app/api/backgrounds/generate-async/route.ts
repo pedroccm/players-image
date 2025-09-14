@@ -69,7 +69,7 @@ async function processBackgroundGeneration(
     )
     const mockRequest = {
       json: async () => ({ teamName, teamId }),
-    } as any
+    } as NextRequest
 
     const response = await generateBackgroundForTeam(mockRequest)
     const result = await response.json()
