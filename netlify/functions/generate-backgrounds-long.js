@@ -121,7 +121,15 @@ exports.handler = async (event) => {
 // Função para encontrar logo do time
 async function findTeamLogo(teamIdentifier) {
   try {
-    const logoDir = path.join(process.cwd(), "public", "escudos_2025")
+    // No Netlify, process.cwd() pode apontar para diretório diferente
+    // Usar caminho relativo à função ou absoluto baseado na estrutura
+    const logoDir = path.join(__dirname, "..", "..", "public", "escudos_2025")
+
+    console.log(`🔧 Debug paths:`)
+    console.log(`   __dirname: ${__dirname}`)
+    console.log(`   process.cwd(): ${process.cwd()}`)
+    console.log(`   logoDir: ${logoDir}`)
+
     const files = await readdir(logoDir)
 
     // Filtrar apenas arquivos PNG
@@ -186,7 +194,7 @@ const usedBackgroundsCache = new Map()
 // Função para selecionar background aleatório
 async function getRandomBackground(teamIdentifier) {
   try {
-    const bgsDir = path.join(process.cwd(), "public", "bgs")
+    const bgsDir = path.join(__dirname, "..", "..", "public", "bgs")
     const files = await readdir(bgsDir)
 
     // Filtrar apenas arquivos de imagem
@@ -287,7 +295,9 @@ async function generateBackgroundWithAI(
   try {
     // Ler arquivos
     const backgroundPath = path.join(
-      process.cwd(),
+      __dirname,
+      "..",
+      "..",
       "public",
       "bgs",
       backgroundFile
