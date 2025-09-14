@@ -178,19 +178,11 @@ const usedBackgroundsCache = new Map()
 // Função para selecionar background aleatório usando URLs públicas
 async function getRandomBackground(teamIdentifier) {
   try {
-    // Lista fixa de backgrounds disponíveis (pode ser expandida)
-    const availableBackgrounds = [
-      "stadium_1.png",
-      "stadium_2.png",
-      "stadium_3.png",
-      "stadium_4.png",
-      "stadium_5.png",
-      "field_1.jpg",
-      "field_2.jpg",
-      "field_3.jpg",
-      "arena_1.png",
-      "arena_2.png"
-    ]
+    // Lista real de backgrounds disponíveis (bg1.png até bg52.png)
+    const availableBackgrounds = []
+    for (let i = 1; i <= 52; i++) {
+      availableBackgrounds.push(`bg${i}.png`)
+    }
 
     // Obter backgrounds já usados para este time
     if (!usedBackgroundsCache.has(teamIdentifier)) {
