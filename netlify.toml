@@ -9,7 +9,5 @@
 [functions]
   external_node_modules = ["sharp"]
 
-# Background function para processos longos
 [[functions]]
   path = "netlify/functions/generate-backgrounds-long.js"
-  timeout = 900
