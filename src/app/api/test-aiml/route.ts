@@ -1,4 +1,3 @@
-
 export async function GET() {
   try {
     console.log("🧪 Testing AIML API...")
