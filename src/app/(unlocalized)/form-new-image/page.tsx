@@ -259,12 +259,15 @@ export default function FormNewImagePage() {
             // Start smart progress bar
             progressController = createSmartProgress(i, maxBackgrounds)
 
-            // Make API call to new local endpoint
-            const response = await fetch("/api/backgrounds/generate-local", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ teamName, teamId }),
-            })
+            // Make API call to Netlify background function (15min timeout)
+            const response = await fetch(
+              "/.netlify/functions/generate-backgrounds-long",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ teamName, teamId }),
+              }
+            )
 
             const data = await response.json()
             console.log(`📊 Background generation response ${i}:`, data)
