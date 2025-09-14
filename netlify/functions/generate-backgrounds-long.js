@@ -121,16 +121,44 @@ exports.handler = async (event) => {
 // Função para encontrar logo do time
 async function findTeamLogo(teamIdentifier) {
   try {
-    // No Netlify, process.cwd() pode apontar para diretório diferente
-    // Usar caminho relativo à função ou absoluto baseado na estrutura
-    const logoDir = path.join(__dirname, "..", "..", "public", "escudos_2025")
-
-    console.log(`🔧 Debug paths:`)
+    console.log(`🔧 Debug paths for team: ${teamIdentifier}`)
     console.log(`   __dirname: ${__dirname}`)
     console.log(`   process.cwd(): ${process.cwd()}`)
-    console.log(`   logoDir: ${logoDir}`)
 
-    const files = await readdir(logoDir)
+    // Estratégia de múltiplos caminhos para encontrar logos
+    const possiblePaths = [
+      // Netlify build context
+      path.join(process.cwd(), "public", "escudos_2025"),
+      // Relativo à função
+      path.join(__dirname, "..", "..", "public", "escudos_2025"),
+      // Deploy directory
+      path.join(__dirname, "..", "public", "escudos_2025"),
+      // Root do projeto
+      path.join("/", "opt", "build", "repo", "public", "escudos_2025"),
+    ]
+
+    let logoDir = null
+    let files = []
+
+    for (const testPath of possiblePaths) {
+      try {
+        console.log(`   Testing path: ${testPath}`)
+        const testFiles = await readdir(testPath)
+        console.log(`   ✅ Found ${testFiles.length} files in: ${testPath}`)
+        logoDir = testPath
+        files = testFiles
+        break
+      } catch (error) {
+        console.log(`   ❌ Path not found: ${testPath}`)
+        continue
+      }
+    }
+
+    if (!logoDir) {
+      throw new Error(
+        "No valid logo directory found in any of the tested paths"
+      )
+    }
 
     // Filtrar apenas arquivos PNG
     const pngFiles = files.filter((file) => file.endsWith(".png"))
@@ -194,8 +222,31 @@ const usedBackgroundsCache = new Map()
 // Função para selecionar background aleatório
 async function getRandomBackground(teamIdentifier) {
   try {
-    const bgsDir = path.join(__dirname, "..", "..", "public", "bgs")
-    const files = await readdir(bgsDir)
+    // Estratégia de múltiplos caminhos para encontrar backgrounds
+    const possiblePaths = [
+      path.join(process.cwd(), "public", "bgs"),
+      path.join(__dirname, "..", "..", "public", "bgs"),
+      path.join(__dirname, "..", "public", "bgs"),
+      path.join("/", "opt", "build", "repo", "public", "bgs"),
+    ]
+
+    let bgsDir = null
+    let files = []
+
+    for (const testPath of possiblePaths) {
+      try {
+        const testFiles = await readdir(testPath)
+        bgsDir = testPath
+        files = testFiles
+        break
+      } catch (error) {
+        continue
+      }
+    }
+
+    if (!bgsDir) {
+      throw new Error("No valid backgrounds directory found")
+    }
 
     // Filtrar apenas arquivos de imagem
     const imageFiles = files.filter((file) =>
@@ -293,15 +344,32 @@ async function generateBackgroundWithAI(
   }
 
   try {
-    // Ler arquivos
-    const backgroundPath = path.join(
-      __dirname,
-      "..",
-      "..",
-      "public",
-      "bgs",
-      backgroundFile
-    )
+    // Encontrar caminho correto para backgrounds
+    const possibleBgPaths = [
+      path.join(process.cwd(), "public", "bgs", backgroundFile),
+      path.join(__dirname, "..", "..", "public", "bgs", backgroundFile),
+      path.join(__dirname, "..", "public", "bgs", backgroundFile),
+      path.join("/", "opt", "build", "repo", "public", "bgs", backgroundFile),
+    ]
+
+    let backgroundPath = null
+    for (const testPath of possibleBgPaths) {
+      try {
+        fs.accessSync(testPath, fs.constants.F_OK)
+        backgroundPath = testPath
+        break
+      } catch (error) {
+        continue
+      }
+    }
+
+    if (!backgroundPath) {
+      throw new Error(`Background file not found: ${backgroundFile}`)
+    }
+
+    console.log(`📁 Using background path: ${backgroundPath}`)
+    console.log(`📁 Using logo path: ${teamLogoPath}`)
+
     const logoBuffer = fs.readFileSync(teamLogoPath)
     const backgroundBuffer = fs.readFileSync(backgroundPath)
 
