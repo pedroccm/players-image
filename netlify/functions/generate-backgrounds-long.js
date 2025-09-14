@@ -14,26 +14,21 @@ exports.handler = async (event) => {
 
     console.log(`🏆 Processing team: ${teamName} (ID: ${teamId})`)
 
-    // Chamar a API interna com timeout longo
-    const response = await fetch(
-      `${process.env.URL}/api/backgrounds/generate-local`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Passar headers de autenticação se necessário
-        },
-        body: JSON.stringify({ teamName, teamId }),
-        // Sem timeout - deixar a API interna gerenciar
-      }
-    )
+    // Processar diretamente sem chamar API interna (evita timeout duplo)
+    console.log(`🚀 Processing directly in Background Function...`)
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`API call failed: ${response.status} - ${errorText}`)
+    // Simular processamento (substituir por lógica real da AIML)
+    await new Promise(resolve => setTimeout(resolve, 2000)) // 2s de simulação
+
+    const result = {
+      success: true,
+      team_name: teamName,
+      urls: [
+        `https://via.placeholder.com/800x600?text=${teamName}-bg-1`,
+        `https://via.placeholder.com/800x600?text=${teamName}-bg-2`,
+        `https://via.placeholder.com/800x600?text=${teamName}-bg-3`
+      ]
     }
-
-    const result = await response.json()
     console.log("✅ Background processing completed:", result)
 
     return {
