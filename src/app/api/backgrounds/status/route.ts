@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server"
+
 import { jobs } from "@/lib/jobs-store"
 
 export async function GET(request: NextRequest) {
