@@ -67,20 +67,19 @@ async function processBackgroundGeneration(
 
     console.log("✅ Status updated to processing")
 
-    // Chamar API original através de HTTP interno
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/backgrounds/generate-local`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamName, teamId }),
-      }
-    )
+    // Chamar função diretamente (sem HTTP interno)
+    console.log("📞 Calling background generation directly...")
+    const { generateBackgroundForTeam } = await import("../generate-local/route")
 
-    console.log("📞 API call response status:", response.status)
+    // Criar mock request
+    const mockRequest = {
+      json: async () => ({ teamName, teamId })
+    } as NextRequest
 
+    const response = await generateBackgroundForTeam(mockRequest)
     const result = await response.json()
-    console.log("📊 API call result:", result)
+
+    console.log("📊 Direct call result:", result)
 
     if (result.success) {
       job.status = "completed"
