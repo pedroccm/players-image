@@ -297,7 +297,7 @@ async function generateBackgroundWithAI(
         Authorization: `Bearer ${API_KEY}`,
       },
       body: formData,
-      signal: AbortSignal.timeout(120000), // 2 minutos
+      signal: AbortSignal.timeout(120000), // 2 minutos (background function)
     })
 
     if (!response.ok) {

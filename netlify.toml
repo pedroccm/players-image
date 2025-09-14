@@ -1,0 +1,11 @@
+[build]
+  command = "pnpm run build"
+  functions = "netlify/functions"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[functions]
+  # Background functions podem ter até 15 minutos no Pro
+  timeout = 900
