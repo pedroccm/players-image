@@ -281,7 +281,11 @@ export default function FormNewImagePage() {
             const jobId = startData.jobId
             let attempts = 0
             const maxAttempts = 120 // 2 minutes max (120 * 1s)
-            let data: { success: boolean; urls: string[] } | null = null
+            let data: {
+              success: boolean
+              urls: string[]
+              error?: string
+            } | null = null
 
             while (attempts < maxAttempts) {
               await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1s
