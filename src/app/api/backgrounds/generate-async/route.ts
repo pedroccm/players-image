@@ -82,7 +82,10 @@ async function processBackgroundGeneration(
     console.log("📞 Background Function response status:", response.status)
 
     const responseText = await response.text()
-    console.log("📄 Background Function response body:", responseText.substring(0, 500))
+    console.log(
+      "📄 Background Function response body:",
+      responseText.substring(0, 500)
+    )
 
     if (!response.ok) {
       throw new Error(
@@ -94,8 +97,13 @@ async function processBackgroundGeneration(
     try {
       result = JSON.parse(responseText)
     } catch (error) {
-      console.error("❌ JSON parse error. Response was:", responseText.substring(0, 1000))
-      throw new Error(`Invalid JSON response from Background Function: ${error}`)
+      console.error(
+        "❌ JSON parse error. Response was:",
+        responseText.substring(0, 1000)
+      )
+      throw new Error(
+        `Invalid JSON response from Background Function: ${error}`
+      )
     }
     console.log("📊 Background Function result:", result)
 
