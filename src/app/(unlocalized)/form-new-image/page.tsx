@@ -259,18 +259,58 @@ export default function FormNewImagePage() {
             // Start smart progress bar
             progressController = createSmartProgress(i, maxBackgrounds)
 
-            // Temporary: Use API route directly while debugging function
-            const endpoint = "/api/backgrounds/generate-local"
-            console.log(`🚀 Using endpoint: ${endpoint}`)
+            // Step 1: Start async background generation
+            console.log(`🚀 Starting async generation ${i}/${maxBackgrounds}`)
+            const startResponse = await fetch(
+              "/api/backgrounds/generate-async",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ teamName, teamId }),
+              }
+            )
 
-            const response = await fetch(endpoint, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ teamName, teamId }),
-            })
+            const startData = await startResponse.json()
+            console.log(`📊 Async job started ${i}:`, startData)
 
-            const data = await response.json()
-            console.log(`📊 Background generation response ${i}:`, data)
+            if (!startData.success || !startData.jobId) {
+              throw new Error(`Failed to start job: ${startData.error}`)
+            }
+
+            // Step 2: Poll for completion
+            const jobId = startData.jobId
+            let attempts = 0
+            const maxAttempts = 120 // 2 minutes max (120 * 1s)
+            let data: any = null
+
+            while (attempts < maxAttempts) {
+              await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1s
+
+              const statusResponse = await fetch(
+                `/api/backgrounds/status?jobId=${jobId}`
+              )
+              const statusData = await statusResponse.json()
+
+              console.log(
+                `📊 Job ${jobId} status (attempt ${attempts + 1}):`,
+                statusData.status
+              )
+
+              if (statusData.status === "completed") {
+                data = { success: true, urls: statusData.result }
+                break
+              } else if (statusData.status === "failed") {
+                throw new Error(`Job failed: ${statusData.error}`)
+              }
+
+              attempts++
+            }
+
+            if (!data) {
+              throw new Error("Job timed out after 2 minutes")
+            }
+
+            console.log(`📊 Background generation completed ${i}:`, data)
 
             // API respondeu - completar progress bar instantaneamente
             progressController.complete()

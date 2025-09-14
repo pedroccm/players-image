@@ -15,7 +15,8 @@ const supabase = createClient(
 // Cache de backgrounds já usados por time para evitar duplicatas
 const usedBackgroundsCache = new Map<string, Set<string>>()
 
-export async function POST(request: NextRequest) {
+// Função principal extraída para reutilização
+export async function generateBackgroundForTeam(request: NextRequest) {
   console.log("=== BACKGROUNDS GENERATE LOCAL API CALLED ===")
 
   try {
@@ -359,4 +360,9 @@ async function uploadToSupabase(
     console.error("❌ Error uploading to Supabase:", error)
     throw error
   }
+}
+
+// Export POST handler que chama a função principal
+export async function POST(request: NextRequest) {
+  return generateBackgroundForTeam(request)
 }

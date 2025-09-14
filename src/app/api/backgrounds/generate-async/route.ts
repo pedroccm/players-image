@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server"
 
 // Store para jobs em memória (em prod seria Redis/DB)
-const jobs = new Map<
+export const jobs = new Map<
   string,
   {
     id: string
@@ -63,16 +63,15 @@ async function processBackgroundGeneration(
     job.status = "processing"
     jobs.set(jobId, job)
 
-    // Chamar API original (sem timeout limite)
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/backgrounds/generate-local`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamName, teamId }),
-      }
+    // Chamar API original internamente (mesma instância, sem timeout HTTP)
+    const { generateBackgroundForTeam } = await import(
+      "../generate-local/route"
     )
+    const mockRequest = {
+      json: async () => ({ teamName, teamId }),
+    } as any
 
+    const response = await generateBackgroundForTeam(mockRequest)
     const result = await response.json()
 
     if (result.success) {
