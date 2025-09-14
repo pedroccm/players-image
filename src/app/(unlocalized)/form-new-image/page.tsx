@@ -226,7 +226,7 @@ export default function FormNewImagePage() {
       setIsGeneratingSingleBg(false)
       setSingleBgProgress({ percentage: 0 })
     }
-  }, [formData.homeTeam, generatedBackgrounds, createSmartProgress])
+  }, [formData.homeTeam, generatedBackgrounds])
 
   // Function to generate backgrounds for selected team using new local API
   const generateBackgroundsForTeam = useCallback(
@@ -507,7 +507,8 @@ export default function FormNewImagePage() {
           Player.CX - Formulário Nova API V4
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Progress inteligente + Backgrounds únicos + Botão "+1 Background"
+          Progress inteligente + Backgrounds únicos + Botão &quot;+1
+          Background&quot;
         </p>
       </div>
       <div className="container mx-auto px-4 py-8">

@@ -1,11 +1,10 @@
-import { randomUUID } from "crypto"
-import { readFileSync, writeFileSync } from "fs"
+import { readFileSync } from "fs"
 import { readdir } from "fs/promises"
-import { tmpdir } from "os"
 import { join } from "path"
 
-import { NextRequest } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+
+import type { NextRequest } from "next/server"
 
 // Configuração do Supabase
 const supabase = createClient(
@@ -96,7 +95,7 @@ export async function POST(request: NextRequest) {
           urls: [publicUrl.data.publicUrl],
         })
       }
-    } catch (error) {
+    } catch {
       console.log(`🔍 Background ${bgName} não existe, será gerado`)
     }
 
@@ -256,7 +255,7 @@ async function getRandomBackground(
 async function generateBackgroundWithAI(
   teamLogoPath: string,
   backgroundFile: string,
-  teamName: string
+  _teamName: string
 ): Promise<string> {
   const API_KEY = process.env.AIML_API_KEY
   if (!API_KEY) {
@@ -337,7 +336,7 @@ async function uploadToSupabase(
     console.log(`📤 Uploading to Supabase: ${supabasePath}`)
 
     // Upload para Supabase
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from("fotos")
       .upload(supabasePath, imageBuffer, {
         contentType: "image/png",
