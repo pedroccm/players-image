@@ -4,7 +4,3 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-[build.environment]
-  # Timeout para serverless functions (26s max no Pro)
-  AWS_LAMBDA_JS_RUNTIME = "nodejs18.x"
