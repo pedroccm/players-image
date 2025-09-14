@@ -195,7 +195,7 @@ export default function FormNewImagePage() {
         if (data.success && data.urls && Array.isArray(data.urls)) {
           // Verificar se já existe antes de adicionar
           const newUrls = data.urls.filter(
-            (url) => !generatedBackgrounds.includes(url)
+            (url: string) => !generatedBackgrounds.includes(url)
           )
 
           if (newUrls.length > 0) {
