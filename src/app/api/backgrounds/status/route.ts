@@ -2,11 +2,13 @@ import type { NextRequest } from "next/server"
 
 // Import the jobs store from generate-async
 // Note: In production, this would be Redis/Database
-let jobs: Map<string, any>
-try {
-  jobs = (await import("../generate-async/route")).jobs || new Map()
-} catch {
-  jobs = new Map()
+async function getJobsStore() {
+  try {
+    const { jobs } = await import("../generate-async/route")
+    return jobs
+  } catch {
+    return new Map()
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -23,6 +25,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Get job from memory store
+  const jobs = await getJobsStore()
   const job = jobs.get(jobId)
 
   if (!job) {
