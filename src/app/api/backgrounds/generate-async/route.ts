@@ -67,7 +67,7 @@ async function processBackgroundGeneration(
 
     console.log("✅ Status updated to processing")
 
-    // Chamar API usando URL correta do Netlify
+    // Chamar API usando URL correta do Netlify com timeout maior
     console.log("📞 Calling background generation via Netlify URL...")
     const response = await fetch(
       "https://players-image.netlify.app/api/backgrounds/generate-local",
@@ -75,10 +75,15 @@ async function processBackgroundGeneration(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamName, teamId }),
+        signal: AbortSignal.timeout(120000), // 2 minutos timeout
       }
     )
 
     console.log("📞 API call response status:", response.status)
+
+    if (!response.ok) {
+      throw new Error(`API call failed with status ${response.status}`)
+    }
 
     const result = await response.json()
     console.log("📊 API call result:", result)
