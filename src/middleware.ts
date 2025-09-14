@@ -97,7 +97,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Explicitly exclude chat-image, form-image, form-new-image, banana-image, bananas-image, photo-mix, test-bg and their subpaths
-    "/((?!api|_next|favicon.ico|sitemap.xml|robots.txt|images|docs|escudos_2025|bgs|chat-image|form-image|form-new-image|banana-image|bananas-image|photo-mix|test-bg).*)",
+    // Explicitly exclude api, netlify functions, chat-image, form-image, form-new-image, banana-image, bananas-image, photo-mix, test-bg and their subpaths
+    "/((?!api|\\.netlify|_next|favicon.ico|sitemap.xml|robots.txt|images|docs|escudos_2025|bgs|chat-image|form-image|form-new-image|banana-image|bananas-image|photo-mix|test-bg).*)",
   ],
 }

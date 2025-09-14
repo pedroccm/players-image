@@ -107,3 +107,5 @@ pnpm run format
 ---
 
 **LEMBRE-SE**: SEMPRE rode `pnpm run fix` antes de commitar!
+
+NUNCA tente usar a soluça
