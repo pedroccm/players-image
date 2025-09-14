@@ -127,14 +127,25 @@ async function findTeamLogo(teamIdentifier) {
 
     // Estratégia de múltiplos caminhos para encontrar logos
     const possiblePaths = [
-      // Netlify build context
+      // Netlify build context original
       path.join(process.cwd(), "public", "escudos_2025"),
       // Relativo à função
       path.join(__dirname, "..", "..", "public", "escudos_2025"),
       // Deploy directory
       path.join(__dirname, "..", "public", "escudos_2025"),
-      // Root do projeto
+      // Netlify specific paths (descoberto nos logs)
+      path.join("/var/task", ".next", "static", "escudos_2025"),
+      path.join("/var/task", ".next", "server", "static", "escudos_2025"),
+      // Next.js public folder em builds
+      path.join("/var/task", ".next", "public", "escudos_2025"),
+      // Asset folder
+      path.join("/var/task", "assets", "escudos_2025"),
+      // Static folder
+      path.join("/var/task", "static", "escudos_2025"),
+      // Root absoluto
       path.join("/", "opt", "build", "repo", "public", "escudos_2025"),
+      // Possível local do Next.js
+      path.join("/var/task", "escudos_2025"),
     ]
 
     let logoDir = null
@@ -227,7 +238,13 @@ async function getRandomBackground(teamIdentifier) {
       path.join(process.cwd(), "public", "bgs"),
       path.join(__dirname, "..", "..", "public", "bgs"),
       path.join(__dirname, "..", "public", "bgs"),
+      path.join("/var/task", ".next", "static", "bgs"),
+      path.join("/var/task", ".next", "server", "static", "bgs"),
+      path.join("/var/task", ".next", "public", "bgs"),
+      path.join("/var/task", "assets", "bgs"),
+      path.join("/var/task", "static", "bgs"),
       path.join("/", "opt", "build", "repo", "public", "bgs"),
+      path.join("/var/task", "bgs"),
     ]
 
     let bgsDir = null
@@ -349,7 +366,20 @@ async function generateBackgroundWithAI(
       path.join(process.cwd(), "public", "bgs", backgroundFile),
       path.join(__dirname, "..", "..", "public", "bgs", backgroundFile),
       path.join(__dirname, "..", "public", "bgs", backgroundFile),
+      path.join("/var/task", ".next", "static", "bgs", backgroundFile),
+      path.join(
+        "/var/task",
+        ".next",
+        "server",
+        "static",
+        "bgs",
+        backgroundFile
+      ),
+      path.join("/var/task", ".next", "public", "bgs", backgroundFile),
+      path.join("/var/task", "assets", "bgs", backgroundFile),
+      path.join("/var/task", "static", "bgs", backgroundFile),
       path.join("/", "opt", "build", "repo", "public", "bgs", backgroundFile),
+      path.join("/var/task", "bgs", backgroundFile),
     ]
 
     let backgroundPath = null
