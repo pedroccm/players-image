@@ -83,7 +83,9 @@ async function processBackgroundGeneration(
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw new Error(`Background Function failed: ${response.status} - ${errorText}`)
+      throw new Error(
+        `Background Function failed: ${response.status} - ${errorText}`
+      )
     }
 
     const result = await response.json()
