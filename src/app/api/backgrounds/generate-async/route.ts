@@ -52,15 +52,16 @@ async function processBackgroundGeneration(
     job.status = "processing"
     jobs.set(jobId, job)
 
-    // Chamar API original internamente (mesma instância, sem timeout HTTP)
-    const { generateBackgroundForTeam } = await import(
-      "../generate-local/route"
+    // Chamar API original através de HTTP interno
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/backgrounds/generate-local`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamName, teamId }),
+      }
     )
-    const mockRequest = {
-      json: async () => ({ teamName, teamId }),
-    } as NextRequest
 
-    const response = await generateBackgroundForTeam(mockRequest)
     const result = await response.json()
 
     if (result.success) {
