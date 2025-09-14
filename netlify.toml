@@ -3,9 +3,5 @@
   publish = ".next"
   functions = "netlify/functions"
 
-# Incluir assets públicos nas funções
-[functions]
-  included_files = ["public/**/*"]
-
 [[plugins]]
   package = "@netlify/plugin-nextjs"

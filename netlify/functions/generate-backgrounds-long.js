@@ -30,8 +30,8 @@ exports.handler = async (event) => {
     }
 
     // 1. Buscar logo do time
-    const teamLogoPath = await findTeamLogo(teamId || teamName)
-    if (!teamLogoPath) {
+    const teamLogoUrl = await findTeamLogo(teamId || teamName)
+    if (!teamLogoUrl) {
       throw new Error(`Team logo not found for ${teamId || teamName}`)
     }
 
@@ -85,7 +85,7 @@ exports.handler = async (event) => {
 
     // 4. Gerar nova imagem com AIML API
     const result = await generateWithAIML(
-      teamLogoPath,
+      teamLogoUrl,
       selectedBackground,
       supabasePath,
       teamName
@@ -118,71 +118,25 @@ exports.handler = async (event) => {
   }
 }
 
-// Função para encontrar logo do time
+// Função para encontrar logo do time usando URL pública
 async function findTeamLogo(teamIdentifier) {
   try {
-    console.log(`🔧 Debug paths for team: ${teamIdentifier}`)
-    console.log(`   __dirname: ${__dirname}`)
-    console.log(`   process.cwd(): ${process.cwd()}`)
+    console.log(`🔍 Procurando logo para time: ${teamIdentifier}`)
 
-    // Estratégia de múltiplos caminhos para encontrar logos
-    const possiblePaths = [
-      // Netlify build context original
-      path.join(process.cwd(), "public", "escudos_2025"),
-      // Relativo à função
-      path.join(__dirname, "..", "..", "public", "escudos_2025"),
-      // Deploy directory
-      path.join(__dirname, "..", "public", "escudos_2025"),
-      // Netlify specific paths (descoberto nos logs)
-      path.join("/var/task", ".next", "static", "escudos_2025"),
-      path.join("/var/task", ".next", "server", "static", "escudos_2025"),
-      // Next.js public folder em builds
-      path.join("/var/task", ".next", "public", "escudos_2025"),
-      // Asset folder
-      path.join("/var/task", "assets", "escudos_2025"),
-      // Static folder
-      path.join("/var/task", "static", "escudos_2025"),
-      // Root absoluto
-      path.join("/", "opt", "build", "repo", "public", "escudos_2025"),
-      // Possível local do Next.js
-      path.join("/var/task", "escudos_2025"),
-    ]
-
-    let logoDir = null
-    let files = []
-
-    for (const testPath of possiblePaths) {
-      try {
-        console.log(`   Testing path: ${testPath}`)
-        const testFiles = await readdir(testPath)
-        console.log(`   ✅ Found ${testFiles.length} files in: ${testPath}`)
-        logoDir = testPath
-        files = testFiles
-        break
-      } catch (error) {
-        console.log(`   ❌ Path not found: ${testPath}`)
-        continue
-      }
-    }
-
-    if (!logoDir) {
-      throw new Error(
-        "No valid logo directory found in any of the tested paths"
-      )
-    }
-
-    // Filtrar apenas arquivos PNG
-    const pngFiles = files.filter((file) => file.endsWith(".png"))
-
-    console.log(`🔍 Procurando logo PNG para: ${teamIdentifier}`)
-    console.log(`📁 Arquivos PNG disponíveis: ${pngFiles.length}`)
-
-    // Tentar busca direta primeiro (caso seja um ID como "america_de_pedrinhas")
+    // Primeiro tentar busca direta
     const directMatch = `${teamIdentifier}.png`
-    if (pngFiles.includes(directMatch)) {
-      const logoPath = path.join(logoDir, directMatch)
-      console.log(`✅ Logo PNG encontrado (busca direta): ${logoPath}`)
-      return logoPath
+    let logoUrl = `https://players-image.netlify.app/escudos_2025/${directMatch}`
+
+    console.log(`🌐 Testando URL direta: ${logoUrl}`)
+
+    try {
+      const response = await fetch(logoUrl, { method: "HEAD" })
+      if (response.ok) {
+        console.log(`✅ Logo encontrado (busca direta): ${logoUrl}`)
+        return logoUrl
+      }
+    } catch (error) {
+      console.log(`❌ URL direta não encontrada: ${logoUrl}`)
     }
 
     // Fallback: normalizar nome do time para busca
@@ -197,29 +151,20 @@ async function findTeamLogo(teamIdentifier) {
       .replace(/ç/g, "c")
       .replace(/[^a-z0-9_-]/g, "")
 
-    console.log(`🔍 Nome normalizado (fallback): ${normalizedTeamName}`)
+    const normalizedUrl = `https://players-image.netlify.app/escudos_2025/${normalizedTeamName}.png`
+    console.log(`🌐 Testando URL normalizada: ${normalizedUrl}`)
 
-    // Buscar arquivo PNG que corresponda
-    for (const file of pngFiles) {
-      const fileNameWithoutExt = file.replace(/\.[^/.]+$/, "").toLowerCase()
-      console.log(
-        `🔍 Comparando: ${fileNameWithoutExt} === ${normalizedTeamName}`
-      )
-
-      if (fileNameWithoutExt === normalizedTeamName) {
-        const logoPath = path.join(logoDir, file)
-        console.log(`✅ Logo PNG encontrado (busca normalizada): ${logoPath}`)
-        return logoPath
+    try {
+      const response = await fetch(normalizedUrl, { method: "HEAD" })
+      if (response.ok) {
+        console.log(`✅ Logo encontrado (busca normalizada): ${normalizedUrl}`)
+        return normalizedUrl
       }
+    } catch (error) {
+      console.log(`❌ URL normalizada não encontrada: ${normalizedUrl}`)
     }
 
-    console.log(`❌ Logo PNG não encontrado para: ${teamIdentifier}`)
-    console.log(
-      `📝 Tentativas: busca direta (${directMatch}) e normalizada (${normalizedTeamName})`
-    )
-    console.log(
-      `📝 Arquivos PNG disponíveis: ${pngFiles.slice(0, 10).join(", ")}...`
-    )
+    console.log(`❌ Logo não encontrado para: ${teamIdentifier}`)
     return null
   } catch (error) {
     console.error("❌ Error finding team logo:", error)
@@ -230,49 +175,22 @@ async function findTeamLogo(teamIdentifier) {
 // Cache de backgrounds já usados por time para evitar duplicatas
 const usedBackgroundsCache = new Map()
 
-// Função para selecionar background aleatório
+// Função para selecionar background aleatório usando URLs públicas
 async function getRandomBackground(teamIdentifier) {
   try {
-    // Estratégia de múltiplos caminhos para encontrar backgrounds
-    const possiblePaths = [
-      path.join(process.cwd(), "public", "bgs"),
-      path.join(__dirname, "..", "..", "public", "bgs"),
-      path.join(__dirname, "..", "public", "bgs"),
-      path.join("/var/task", ".next", "static", "bgs"),
-      path.join("/var/task", ".next", "server", "static", "bgs"),
-      path.join("/var/task", ".next", "public", "bgs"),
-      path.join("/var/task", "assets", "bgs"),
-      path.join("/var/task", "static", "bgs"),
-      path.join("/", "opt", "build", "repo", "public", "bgs"),
-      path.join("/var/task", "bgs"),
+    // Lista fixa de backgrounds disponíveis (pode ser expandida)
+    const availableBackgrounds = [
+      "stadium_1.png",
+      "stadium_2.png",
+      "stadium_3.png",
+      "stadium_4.png",
+      "stadium_5.png",
+      "field_1.jpg",
+      "field_2.jpg",
+      "field_3.jpg",
+      "arena_1.png",
+      "arena_2.png"
     ]
-
-    let bgsDir = null
-    let files = []
-
-    for (const testPath of possiblePaths) {
-      try {
-        const testFiles = await readdir(testPath)
-        bgsDir = testPath
-        files = testFiles
-        break
-      } catch (error) {
-        continue
-      }
-    }
-
-    if (!bgsDir) {
-      throw new Error("No valid backgrounds directory found")
-    }
-
-    // Filtrar apenas arquivos de imagem
-    const imageFiles = files.filter((file) =>
-      /\.(jpg|jpeg|png|webp)$/i.test(file)
-    )
-
-    if (imageFiles.length === 0) {
-      return null
-    }
 
     // Obter backgrounds já usados para este time
     if (!usedBackgroundsCache.has(teamIdentifier)) {
@@ -281,7 +199,7 @@ async function getRandomBackground(teamIdentifier) {
     const usedBackgrounds = usedBackgroundsCache.get(teamIdentifier)
 
     // Filtrar backgrounds não usados
-    const availableFiles = imageFiles.filter(
+    const availableFiles = availableBackgrounds.filter(
       (file) => !usedBackgrounds.has(file)
     )
 
@@ -291,7 +209,7 @@ async function getRandomBackground(teamIdentifier) {
         `🔄 Resetando cache de backgrounds para ${teamIdentifier} - todos foram usados`
       )
       usedBackgrounds.clear()
-      availableFiles.push(...imageFiles)
+      availableFiles.push(...availableBackgrounds)
     }
 
     // Selecionar aleatoriamente dos disponíveis
@@ -305,7 +223,7 @@ async function getRandomBackground(teamIdentifier) {
       `🎲 Background selecionado para ${teamIdentifier}: ${selectedFile}`
     )
     console.log(
-      `📊 Backgrounds usados: ${usedBackgrounds.size}/${imageFiles.length}`
+      `📊 Backgrounds usados: ${usedBackgrounds.size}/${availableBackgrounds.length}`
     )
 
     return selectedFile
@@ -351,7 +269,7 @@ async function generateWithAIML(
 
 // Função para gerar imagem com IA
 async function generateBackgroundWithAI(
-  teamLogoPath,
+  teamLogoUrl,
   backgroundFile,
   teamName
 ) {
@@ -361,47 +279,27 @@ async function generateBackgroundWithAI(
   }
 
   try {
-    // Encontrar caminho correto para backgrounds
-    const possibleBgPaths = [
-      path.join(process.cwd(), "public", "bgs", backgroundFile),
-      path.join(__dirname, "..", "..", "public", "bgs", backgroundFile),
-      path.join(__dirname, "..", "public", "bgs", backgroundFile),
-      path.join("/var/task", ".next", "static", "bgs", backgroundFile),
-      path.join(
-        "/var/task",
-        ".next",
-        "server",
-        "static",
-        "bgs",
-        backgroundFile
-      ),
-      path.join("/var/task", ".next", "public", "bgs", backgroundFile),
-      path.join("/var/task", "assets", "bgs", backgroundFile),
-      path.join("/var/task", "static", "bgs", backgroundFile),
-      path.join("/", "opt", "build", "repo", "public", "bgs", backgroundFile),
-      path.join("/var/task", "bgs", backgroundFile),
-    ]
+    // URLs públicas para downloads
+    const backgroundUrl = `https://players-image.netlify.app/bgs/${backgroundFile}`
 
-    let backgroundPath = null
-    for (const testPath of possibleBgPaths) {
-      try {
-        fs.accessSync(testPath, fs.constants.F_OK)
-        backgroundPath = testPath
-        break
-      } catch (error) {
-        continue
-      }
+    console.log(`🌐 Baixando logo de: ${teamLogoUrl}`)
+    console.log(`🌐 Baixando background de: ${backgroundUrl}`)
+
+    // Baixar arquivos via fetch
+    const [logoResponse, backgroundResponse] = await Promise.all([
+      fetch(teamLogoUrl),
+      fetch(backgroundUrl)
+    ])
+
+    if (!logoResponse.ok) {
+      throw new Error(`Failed to fetch logo: ${logoResponse.status}`)
+    }
+    if (!backgroundResponse.ok) {
+      throw new Error(`Failed to fetch background: ${backgroundResponse.status}`)
     }
 
-    if (!backgroundPath) {
-      throw new Error(`Background file not found: ${backgroundFile}`)
-    }
-
-    console.log(`📁 Using background path: ${backgroundPath}`)
-    console.log(`📁 Using logo path: ${teamLogoPath}`)
-
-    const logoBuffer = fs.readFileSync(teamLogoPath)
-    const backgroundBuffer = fs.readFileSync(backgroundPath)
+    const logoBuffer = await logoResponse.arrayBuffer()
+    const backgroundBuffer = await backgroundResponse.arrayBuffer()
 
     // Criar FormData
     const formData = new FormData()
