@@ -19,7 +19,7 @@ export function FormBackgroundSelector({
 
   return (
     <div className="p-4 bg-gray-50 rounded-lg">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 min-h-[200px]">
         {backgrounds.map((bg, index) => (
           <div
             key={bg}
@@ -30,14 +30,25 @@ export function FormBackgroundSelector({
             }`}
             onClick={() => handleSelect(bg)}
           >
-            <Image
-              src={bg}
-              alt={`Background ${index + 1}`}
-              width={120}
-              height={80}
-              className="w-full h-20 object-cover"
-              unoptimized
-            />
+            <div className="w-full h-20 bg-gray-200 flex items-center justify-center">
+              <Image
+                src={bg}
+                alt={`Background ${index + 1}`}
+                width={120}
+                height={80}
+                className="w-full h-full object-cover"
+                unoptimized
+                onLoad={(e) => {
+                  const img = e.target as HTMLImageElement
+                  img.style.opacity = "1"
+                }}
+                onLoadStart={(e) => {
+                  const img = e.target as HTMLImageElement
+                  img.style.opacity = "0"
+                  img.style.transition = "opacity 0.2s"
+                }}
+              />
+            </div>
             {selectedBackground === bg && (
               <div className="absolute inset-0 bg-blue-500 bg-opacity-20 flex items-center justify-center">
                 <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">

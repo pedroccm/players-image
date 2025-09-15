@@ -9,9 +9,14 @@ export async function POST(request: NextRequest) {
   })
 
   try {
-    const { teamName } = await request.json()
+    const { teamName, count = 3 } = await request.json()
 
-    console.log("🏆 Generating backgrounds for team:", teamName)
+    console.log(
+      "🏆 Generating backgrounds for team:",
+      teamName,
+      "count:",
+      count
+    )
 
     if (!teamName) {
       return Response.json(
@@ -20,73 +25,42 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Make only 1 API call to avoid timeout, frontend will call multiple times
-    try {
-      console.log("🌐 Making single API call...")
-
-      const requestBody = {
-        team_name: teamName,
-        size: "1024x1536",
-        quality: "low",
-        count: 1,
-      }
-      console.log("📤 Request body:", requestBody)
-
-      const response = await fetch(
-        "https://letter-image.onrender.com/generate-team-backgrounds",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "User-Agent": "players-image-app/1.0",
-          },
-          body: JSON.stringify(requestBody),
-          signal: AbortSignal.timeout(120000), // 2 minute timeout
-        }
-      )
-
-      console.log("🌐 API response status:", response.status)
-      console.log(
-        "🌐 API response headers:",
-        Object.fromEntries(response.headers.entries())
-      )
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error("❌ External API error response:", errorText)
-
-        // Parse error response to provide better user feedback
-        let errorMessage = `External API error: ${response.status}`
-        try {
-          const errorData = JSON.parse(errorText)
-          if (errorData.detail) {
-            errorMessage = `External API temporarily unavailable: ${errorData.detail}`
-          }
-        } catch {
-          errorMessage += ` - ${errorText}`
-        }
-
-        throw new Error(errorMessage)
-      }
-
-      const data = await response.json()
-      console.log("📊 API data:", data)
-
-      if (data.urls && Array.isArray(data.urls)) {
-        return Response.json({
-          success: true,
-          count: data.urls.length,
-          team_name: teamName,
-          urls: data.urls,
-        })
-      } else {
-        throw new Error("Invalid response format from external API")
-      }
-    } catch (error) {
-      console.error("❌ API call error:", error)
-      throw error
+    // Fire-and-forget: Trigger generation without waiting for response
+    const requestBody = {
+      team_name: teamName,
+      size: "1024x1536",
+      quality: "low",
+      count: count,
     }
+    console.log(
+      "📤 Request body para render.com:",
+      JSON.stringify(requestBody, null, 2)
+    )
+    console.log("🚀 Triggering background generation (fire-and-forget)...")
+    console.log(
+      "🌐 URL sendo chamada: https://letter-image.onrender.com/generate-team-backgrounds"
+    )
+
+    // Start generation but don't wait for it to complete
+    fetch("https://letter-image.onrender.com/generate-team-backgrounds", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "User-Agent": "players-image-app/1.0",
+      },
+      body: JSON.stringify(requestBody),
+    }).catch((error) => {
+      console.error("❌ Background generation failed (async):", error)
+    })
+
+    // Return immediately without waiting
+    return Response.json({
+      success: true,
+      message: `Background generation triggered for ${teamName} with count=${count}`,
+      team_name: teamName,
+      triggered: true,
+    })
   } catch (error) {
     console.error("❌ Error generating backgrounds:", error)
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 
@@ -21,8 +21,6 @@ const BACKGROUND_OPTIONS = [
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg2.png",
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg3.png",
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg4.png",
-  "https://wbsfhwnmteeshqmjnyor.supabase.co/storage/v1/object/public/athlete_media/saida.png",
-  "https://wbsfhwnmteeshqmjnyor.supabase.co/storage/v1/object/public/athlete_media/spfc.jpg",
 ]
 
 interface FormData {
@@ -56,13 +54,18 @@ export function FormInterface() {
   const [hasPremium, setHasPremium] = useState(false)
 
   // Dynamic backgrounds states
-  const [generatedBackgrounds, setGeneratedBackgrounds] = useState<string[]>([])
+  const [existingBackgrounds, setExistingBackgrounds] = useState<string[]>([]) // Backgrounds já existentes
+  const [newBackgrounds, setNewBackgrounds] = useState<string[]>([]) // Backgrounds recém gerados
+  const [allKnownBackgrounds, setAllKnownBackgrounds] = useState<Set<string>>(
+    new Set()
+  ) // Track de todos
   const [isGeneratingBackgrounds, setIsGeneratingBackgrounds] = useState(false)
   const [backgroundsError, setBackgroundsError] = useState<string | null>(null)
   const [backgroundProgress, setBackgroundProgress] = useState({
     current: 0,
     total: 3,
   })
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const updateFormData = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -76,98 +79,259 @@ export function FormInterface() {
     updateFormData("selectedBackgroundUrl", backgroundUrl)
   }
 
-  // Function to generate backgrounds for selected team (progressively)
-  const generateBackgroundsForTeam = useCallback(async (teamId: string) => {
-    setIsGeneratingBackgrounds(true)
-    setBackgroundsError(null)
-    setGeneratedBackgrounds([]) // Clear previous generated backgrounds only
-    // Keep useStaticBackgrounds as false to show combined backgrounds
-    // Don't clear selection - user might have selected a static background
-
+  // Function to fetch existing backgrounds from Supabase
+  const fetchBackgroundsFromSupabase = useCallback(async (teamName: string) => {
     try {
-      console.log("🏆 Generating backgrounds for team:", teamId)
+      const response = await fetch(
+        `/api/backgrounds/list?teamName=${encodeURIComponent(teamName)}`
+      )
+      const data = await response.json()
 
-      // Get team name from ID
-      const teamName = getTeamNameById(teamId)
-      console.log("📝 Team name for API:", teamName)
-
-      const maxBackgrounds = 3
-      const allUrls: string[] = []
-
-      // Make multiple calls to get multiple backgrounds progressively
-      // Only proceed to next call if previous was successful
-      for (let i = 1; i <= maxBackgrounds; i++) {
-        try {
-          console.log(`🌐 Making API call ${i}/${maxBackgrounds}...`)
-
-          // Update progress
-          setBackgroundProgress({ current: i, total: maxBackgrounds })
-
-          const response = await fetch("/api/backgrounds/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ teamName }),
-          })
-
-          const data = await response.json()
-          console.log(`📊 Background generation response ${i}:`, data)
-
-          if (data.success && data.urls && Array.isArray(data.urls)) {
-            allUrls.push(...data.urls)
-
-            // Update backgrounds progressively as they arrive
-            setGeneratedBackgrounds([...allUrls])
-
-            console.log(
-              `✅ Call ${i} successful, total backgrounds: ${allUrls.length}`
-            )
-
-            // Show success message for first background
-            if (i === 1) {
-              toast.success(`Backgrounds sendo gerados para ${teamName}!`)
-            }
-          } else {
-            console.error(`❌ Call ${i} failed:`, data.error)
-            // Stop making further calls if this one failed
-            break
-          }
-        } catch (error) {
-          console.error(`❌ API call ${i} error:`, error)
-          // Stop making further calls if this one failed
-          break
-        }
-      }
-
-      // Final status
-      if (allUrls.length > 0) {
-        toast.success(`${allUrls.length} backgrounds gerados com sucesso!`)
+      if (data.success && data.urls && Array.isArray(data.urls)) {
+        console.log(
+          `📊 Found ${data.urls.length} existing backgrounds for ${teamName}`
+        )
+        return data.urls
       } else {
-        throw new Error("Todas as chamadas falharam")
+        console.log(`📊 No existing backgrounds found for ${teamName}`)
+        return []
       }
     } catch (error) {
-      console.error("❌ Error generating backgrounds:", error)
-      setBackgroundsError(
-        error instanceof Error ? error.message : "Erro de conexão"
-      )
-      // Keep static backgrounds available even if generation fails
-      toast.error(
-        "Erro ao gerar backgrounds personalizados. Backgrounds padrão disponíveis."
-      )
-    } finally {
-      setIsGeneratingBackgrounds(false)
+      console.error("❌ Error fetching backgrounds from Supabase:", error)
+      return []
     }
   }, [])
+
+  // Function to trigger background generation (single call)
+  const triggerBackgroundGeneration = useCallback(async (teamName: string) => {
+    try {
+      console.log(
+        "🌐 Triggering background generation with count=3 for:",
+        teamName
+      )
+
+      // Fire and forget - don't wait for response
+      fetch("/api/backgrounds/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamName, count: 3 }),
+      }).catch((error) => {
+        console.error("❌ Background generation trigger failed:", error)
+      })
+
+      toast.success(`Gerando 3 backgrounds para ${teamName}...`)
+    } catch (error) {
+      console.error("❌ Error triggering background generation:", error)
+    }
+  }, [])
+
+  // Function to generate a single new background
+  const generateSingleBackground = useCallback(async () => {
+    if (!formData.homeTeam || isGeneratingBackgrounds) return
+
+    const teamName = getTeamNameById(formData.homeTeam)
+    console.log("🎯 Generating single background for:", teamName)
+
+    setIsGeneratingBackgrounds(true)
+    setBackgroundsError(null)
+
+    try {
+      // Step 1: Trigger single generation (count=1)
+      await fetch("/api/backgrounds/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamName, count: 1 }),
+      }).catch((error) => {
+        console.error("❌ Single background generation trigger failed:", error)
+      })
+
+      toast.success("Gerando 1 novo background...")
+
+      // Step 2: Poll for the new background
+      let pollCount = 0
+      const maxPolls = 18 // 3 minutes at 10s intervals
+      let foundNew = false
+
+      const interval = setInterval(async () => {
+        pollCount++
+        console.log(`🔄 Single background poll ${pollCount}/${maxPolls}`)
+
+        setBackgroundProgress({ current: pollCount, total: maxPolls })
+
+        const latestBackgrounds = await fetchBackgroundsFromSupabase(teamName)
+        // Para geração individual, verificar se não está nos existentes nem nos novos já conhecidos
+        const newlyFound = latestBackgrounds.filter(
+          (url) =>
+            !existingBackgrounds.includes(url) && !newBackgrounds.includes(url)
+        )
+
+        if (newlyFound.length > 0) {
+          // Found new background!
+          const newUrl = newlyFound[0] // Take the first new one
+          setNewBackgrounds((prev) => [...prev, newUrl])
+          setAllKnownBackgrounds((prev) => new Set([...prev, newUrl]))
+
+          foundNew = true
+          clearInterval(interval)
+          setIsGeneratingBackgrounds(false)
+
+          console.log(`✅ Found new single background: ${newUrl}`)
+          toast.success("🎉 Novo background gerado com sucesso!")
+          return
+        }
+
+        // Stop condition: reached max polls
+        if (pollCount >= maxPolls) {
+          clearInterval(interval)
+          setIsGeneratingBackgrounds(false)
+
+          if (!foundNew) {
+            setBackgroundsError(
+              "Tempo limite atingido para gerar novo background."
+            )
+            toast.error("Tempo limite atingido. Tente novamente.")
+          }
+          return
+        }
+      }, 10000) // Poll every 10 seconds
+    } catch (error) {
+      console.error("❌ Error generating single background:", error)
+      setIsGeneratingBackgrounds(false)
+      toast.error("Erro ao gerar background. Tente novamente.")
+    }
+  }, [
+    formData.homeTeam,
+    isGeneratingBackgrounds,
+    fetchBackgroundsFromSupabase,
+    allKnownBackgrounds,
+  ])
+
+  // Function to start polling for new backgrounds
+  const startPollingForBackgrounds = useCallback(
+    async (teamId: string) => {
+      // Clear any existing polling
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+
+      setIsGeneratingBackgrounds(true)
+      setBackgroundsError(null)
+      setNewBackgrounds([]) // Clear novos backgrounds
+
+      const teamName = getTeamNameById(teamId)
+      console.log("🏆 Starting background generation for team:", teamName)
+
+      // Step 1: Load existing backgrounds immediately and fix them
+      const initialBackgrounds = await fetchBackgroundsFromSupabase(teamName)
+      setExistingBackgrounds(initialBackgrounds)
+      setAllKnownBackgrounds(new Set(initialBackgrounds))
+
+      const initialCount = initialBackgrounds.length
+      console.log(`📊 Initial background count: ${initialCount}`)
+      console.log(`📂 Initial existing backgrounds:`, initialBackgrounds)
+
+      // Step 2: Trigger generation (fire and forget)
+      await triggerBackgroundGeneration(teamName)
+
+      // Step 3: Start polling for new backgrounds
+      let pollCount = 0
+      const maxPolls = 18 // 3 minutes at 10s intervals
+      const targetNewBackgrounds = 3
+      let foundNewCount = 0
+
+      const interval = setInterval(async () => {
+        pollCount++
+        console.log(`🔄 Polling attempt ${pollCount}/${maxPolls}`)
+
+        setBackgroundProgress({ current: pollCount, total: maxPolls })
+
+        const latestBackgrounds = await fetchBackgroundsFromSupabase(teamName)
+
+        // Filter apenas backgrounds novos (não existiam inicialmente)
+        const newlyFound = latestBackgrounds.filter(
+          (url) => !initialBackgrounds.includes(url)
+        )
+
+        console.log(`🔍 Debug polling - Team: ${teamName}`)
+        console.log(`📊 Latest backgrounds found: ${latestBackgrounds.length}`)
+        console.log(`📂 Initial backgrounds: ${initialBackgrounds.length}`)
+        console.log(`🆕 Newly found: ${newlyFound.length}`)
+        console.log(`🔢 Found new count: ${foundNewCount}`)
+        console.log(`📋 Latest backgrounds:`, latestBackgrounds)
+        console.log(`🆕 Newly found URLs:`, newlyFound)
+
+        if (newlyFound.length > foundNewCount) {
+          console.log(
+            `➕ Found ${newlyFound.length} total new backgrounds:`,
+            newlyFound
+          )
+
+          // Substituir completamente o array de novos backgrounds
+          setNewBackgrounds(newlyFound)
+
+          // Update conhecidos
+          setAllKnownBackgrounds(
+            new Set([...initialBackgrounds, ...newlyFound])
+          )
+
+          foundNewCount = newlyFound.length
+          console.log(`✅ Updated! Total new backgrounds: ${foundNewCount}`)
+        }
+
+        // Stop conditions: found target new backgrounds OR reached max polls
+        if (foundNewCount >= targetNewBackgrounds || pollCount >= maxPolls) {
+          clearInterval(interval)
+          pollingIntervalRef.current = null
+          setIsGeneratingBackgrounds(false)
+
+          if (foundNewCount >= targetNewBackgrounds) {
+            toast.success(`🎉 ${foundNewCount} novos backgrounds gerados!`)
+          } else if (foundNewCount > 0) {
+            toast.success(
+              `⏰ Tempo limite: ${foundNewCount} novos backgrounds encontrados.`
+            )
+          } else {
+            setBackgroundsError(
+              "Nenhum novo background foi gerado no tempo limite."
+            )
+            toast.error("Tempo limite atingido. Tente novamente.")
+          }
+          return
+        }
+      }, 10000) // Poll every 10 seconds
+
+      pollingIntervalRef.current = interval
+    },
+    [fetchBackgroundsFromSupabase, triggerBackgroundGeneration]
+  )
 
   // Auto-generate backgrounds when home team changes
   useEffect(() => {
     if (formData.homeTeam) {
-      generateBackgroundsForTeam(formData.homeTeam)
+      startPollingForBackgrounds(formData.homeTeam)
     } else {
-      // Clear generated backgrounds when no team selected, keep static ones
-      setGeneratedBackgrounds([])
+      // Clear all backgrounds and stop polling when no team selected
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+      setExistingBackgrounds([])
+      setNewBackgrounds([])
+      setAllKnownBackgrounds(new Set())
       setBackgroundsError(null)
+      setIsGeneratingBackgrounds(false)
     }
-  }, [formData.homeTeam, generateBackgroundsForTeam])
+  }, [formData.homeTeam])
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -359,18 +523,62 @@ export function FormInterface() {
                   <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                     <Loader2 className="animate-spin mx-auto mb-2" size={24} />
                     <p className="text-sm text-muted-foreground">
-                      Gerando backgrounds personalizados...
+                      Procurando novos backgrounds...
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Progresso: {backgroundProgress.current}/
-                      {backgroundProgress.total}
-                    </p>
+                    <div className="mt-2">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Procurando novos backgrounds (a cada 10s)
+                      </p>
+                      <div className="flex gap-1">
+                        {Array.from({ length: backgroundProgress.total }).map(
+                          (_, index) => (
+                            <div
+                              key={index}
+                              className={`w-3 h-3 rounded-full border ${
+                                index < backgroundProgress.current
+                                  ? "bg-blue-500 border-blue-500"
+                                  : "bg-gray-200 border-gray-300"
+                              }`}
+                            />
+                          )
+                        )}
+                      </div>
+                    </div>
+                    {existingBackgrounds.length > 0 && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        📂 {existingBackgrounds.length} backgrounds existentes
+                      </p>
+                    )}
+                    {newBackgrounds.length > 0 && (
+                      <p className="text-xs text-green-600 mt-1">
+                        ✨ {newBackgrounds.length} novos backgrounds gerados
+                      </p>
+                    )}
                   </div>
                   <FormBackgroundSelector
-                    backgrounds={[
-                      ...BACKGROUND_OPTIONS,
-                      ...generatedBackgrounds,
-                    ]}
+                    backgrounds={(() => {
+                      const allBgs = [
+                        ...BACKGROUND_OPTIONS,
+                        ...existingBackgrounds,
+                        ...newBackgrounds,
+                      ]
+                      const uniqueBgs = allBgs.filter(
+                        (url, index, array) => array.indexOf(url) === index
+                      )
+                      console.log(
+                        "🎨 Rendering backgrounds - Total:",
+                        allBgs.length,
+                        "Unique:",
+                        uniqueBgs.length
+                      )
+                      console.log(
+                        "📂 Existing:",
+                        existingBackgrounds.length,
+                        "✨ New:",
+                        newBackgrounds.length
+                      )
+                      return uniqueBgs
+                    })()}
                     onSelect={handleBackgroundSelected}
                     selectedBackground={formData.selectedBackgroundUrl}
                   />
@@ -385,24 +593,72 @@ export function FormInterface() {
                     size="sm"
                     onClick={() =>
                       formData.homeTeam &&
-                      generateBackgroundsForTeam(formData.homeTeam)
+                      startPollingForBackgrounds(formData.homeTeam)
                     }
                   >
                     Tentar Novamente
                   </Button>
                 </div>
               ) : (
-                <FormBackgroundSelector
-                  backgrounds={[...BACKGROUND_OPTIONS, ...generatedBackgrounds]}
-                  onSelect={handleBackgroundSelected}
-                  selectedBackground={formData.selectedBackgroundUrl}
-                />
-              )}
-              {generatedBackgrounds.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  ✨ {generatedBackgrounds.length} backgrounds personalizados
-                  adicionados
-                </p>
+                <div className="space-y-4">
+                  <FormBackgroundSelector
+                    backgrounds={(() => {
+                      const allBgs = [
+                        ...BACKGROUND_OPTIONS,
+                        ...existingBackgrounds,
+                        ...newBackgrounds,
+                      ]
+                      const uniqueBgs = allBgs.filter(
+                        (url, index, array) => array.indexOf(url) === index
+                      )
+                      console.log(
+                        "🎨 Rendering backgrounds - Total:",
+                        allBgs.length,
+                        "Unique:",
+                        uniqueBgs.length
+                      )
+                      console.log(
+                        "📂 Existing:",
+                        existingBackgrounds.length,
+                        "✨ New:",
+                        newBackgrounds.length
+                      )
+                      return uniqueBgs
+                    })()}
+                    onSelect={handleBackgroundSelected}
+                    selectedBackground={formData.selectedBackgroundUrl}
+                  />
+                  <div className="flex flex-col gap-2">
+                    {existingBackgrounds.length > 0 && (
+                      <p className="text-xs text-blue-600">
+                        📂 {existingBackgrounds.length} backgrounds existentes
+                      </p>
+                    )}
+                    {newBackgrounds.length > 0 && (
+                      <p className="text-xs text-green-600">
+                        ✨ {newBackgrounds.length} novos backgrounds gerados
+                      </p>
+                    )}
+                    {formData.homeTeam && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={generateSingleBackground}
+                        disabled={isGeneratingBackgrounds}
+                        className="w-fit"
+                      >
+                        {isGeneratingBackgrounds ? (
+                          <>
+                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                            Gerando...
+                          </>
+                        ) : (
+                          "🎨 Gerar novo background"
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
 
