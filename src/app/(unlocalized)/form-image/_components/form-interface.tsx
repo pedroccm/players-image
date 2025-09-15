@@ -161,7 +161,7 @@ export function FormInterface() {
         const latestBackgrounds = await fetchBackgroundsFromSupabase(teamName)
         // Para geração individual, verificar se não está nos existentes nem nos novos já conhecidos
         const newlyFound = latestBackgrounds.filter(
-          (url) =>
+          (url: string) =>
             !existingBackgrounds.includes(url) && !newBackgrounds.includes(url)
         )
 
@@ -250,7 +250,7 @@ export function FormInterface() {
 
         // Filter apenas backgrounds novos (não existiam inicialmente)
         const newlyFound = latestBackgrounds.filter(
-          (url) => !initialBackgrounds.includes(url)
+          (url: string) => !initialBackgrounds.includes(url)
         )
 
         console.log(`🔍 Debug polling - Team: ${teamName}`)
