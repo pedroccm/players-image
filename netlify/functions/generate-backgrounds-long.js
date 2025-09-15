@@ -29,19 +29,7 @@ exports.handler = async (event) => {
       throw new Error("Team name or ID is required")
     }
 
-    // 1. Buscar logo do time
-    const teamLogoUrl = await findTeamLogo(teamId || teamName)
-    if (!teamLogoUrl) {
-      throw new Error(`Team logo not found for ${teamId || teamName}`)
-    }
-
-    // 2. Selecionar background aleatório
-    const selectedBackground = await getRandomBackground(teamId || teamName)
-    if (!selectedBackground) {
-      throw new Error("No backgrounds available")
-    }
-
-    // 3. Verificar se já existe no Supabase
+    // Verificação simples de cache no Supabase
     const normalizedTeamName = teamName
       .toLowerCase()
       .replace(/\s+/g, "_")
@@ -53,43 +41,40 @@ exports.handler = async (event) => {
       .replace(/ç/g, "c")
       .replace(/[^a-z0-9_-]/g, "")
 
-    const bgName = selectedBackground.replace(/\.[^/.]+$/, "")
-    const supabasePath = `${normalizedTeamName}/${bgName}.png`
+    console.log(`📁 Checking cache for team: ${normalizedTeamName}`)
 
-    console.log(`📁 Checking Supabase path: ${supabasePath}`)
-
-    // Verificar se já existe
     try {
-      const publicUrl = supabase.storage
+      // Verificar se já existem backgrounds para este time
+      const { data: existingFiles } = await supabase.storage
         .from("fotos")
-        .getPublicUrl(supabasePath)
-      const testResponse = await fetch(publicUrl.data.publicUrl, {
-        method: "HEAD",
-      })
+        .list(normalizedTeamName, { limit: 10 })
 
-      if (testResponse.ok) {
-        console.log(`⚡ Background already exists, reusing`)
+      if (existingFiles && existingFiles.length > 0) {
+        // Retornar primeiro background existente
+        const existingFile = existingFiles[0]
+        const existingUrl = supabase.storage
+          .from("fotos")
+          .getPublicUrl(`${normalizedTeamName}/${existingFile.name}`)
+          .data.publicUrl
+
+        console.log(`⚡ Background cached encontrado: ${existingUrl}`)
+
         return {
           statusCode: 200,
           headers: { "Access-Control-Allow-Origin": "*" },
           body: JSON.stringify({
             success: true,
             team_name: teamName,
-            urls: [publicUrl.data.publicUrl],
+            urls: [existingUrl],
           }),
         }
       }
     } catch {
-      console.log(`🔍 Background not found, will generate`)
+      console.log(`🔍 No cache found, will generate new`)
     }
 
-    // 4. Gerar nova imagem com AIML API
-    const result = await generateWithAIML(
-      teamLogoUrl,
-      selectedBackground,
-      supabasePath,
-      teamName
-    )
+    // Gerar nova imagem com letter-image API
+    const result = await generateWithLetterImage(teamName)
 
     console.log("✅ Background processing completed:", result)
 
@@ -225,46 +210,62 @@ async function getRandomBackground(teamIdentifier) {
   }
 }
 
-// Função principal para gerar com AIML
-async function generateWithAIML(
-  logoPath,
-  backgroundPath,
-  supabasePath,
-  teamName
-) {
-  const API_KEY = process.env.AIML_API_KEY
-  if (!API_KEY) {
-    throw new Error("AIML_API_KEY not configured")
-  }
-
+// Função principal para gerar usando letter-image API
+async function generateWithLetterImage(teamName) {
   try {
-    // Gerar imagem com IA
-    const generatedImageUrl = await generateBackgroundWithAI(
-      logoPath,
-      backgroundPath,
-      teamName
+    console.log(`🌐 Calling letter-image API for team: ${teamName}`)
+
+    const response = await fetch(
+      "https://letter-image.onrender.com/generate-team-backgrounds",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          team_name: teamName,
+          size: "1024x1536",
+          quality: "medium",
+          count: 1,
+        }),
+      }
     )
 
-    // Upload para Supabase
-    const finalUrl = await uploadToSupabase(generatedImageUrl, supabasePath)
+    console.log(`📊 Letter-image API response status: ${response.status}`)
 
-    return {
-      success: true,
-      team_name: teamName,
-      urls: [finalUrl],
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(
+        `Letter-image API error: ${response.status} - ${errorText}`
+      )
+    }
+
+    const data = await response.json()
+    console.log(`📋 Letter-image API response:`, data)
+
+    if (
+      data.success &&
+      data.urls &&
+      Array.isArray(data.urls) &&
+      data.urls.length > 0
+    ) {
+      return {
+        success: true,
+        team_name: teamName,
+        urls: data.urls,
+      }
+    } else {
+      throw new Error("Invalid response from letter-image API")
     }
   } catch (error) {
-    console.error("❌ Error in generateWithAIML:", error)
+    console.error("❌ Error calling letter-image API:", error)
     throw error
   }
 }
 
 // Função para gerar imagem com IA
-async function generateBackgroundWithAI(
-  teamLogoUrl,
-  backgroundFile,
-  teamName
-) {
+async function generateBackgroundWithAI(teamLogoUrl, backgroundFile, teamName) {
   const API_KEY = process.env.AIML_API_KEY
   if (!API_KEY) {
     throw new Error("AIML_API_KEY not configured")
@@ -280,14 +281,16 @@ async function generateBackgroundWithAI(
     // Baixar arquivos via fetch
     const [logoResponse, backgroundResponse] = await Promise.all([
       fetch(teamLogoUrl),
-      fetch(backgroundUrl)
+      fetch(backgroundUrl),
     ])
 
     if (!logoResponse.ok) {
       throw new Error(`Failed to fetch logo: ${logoResponse.status}`)
     }
     if (!backgroundResponse.ok) {
-      throw new Error(`Failed to fetch background: ${backgroundResponse.status}`)
+      throw new Error(
+        `Failed to fetch background: ${backgroundResponse.status}`
+      )
     }
 
     const logoBuffer = await logoResponse.arrayBuffer()
