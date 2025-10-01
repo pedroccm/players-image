@@ -124,9 +124,9 @@ export function TeamSelector({ onSelect }: TeamSelectorProps) {
               <div
                 style={{ display: "flex", alignItems: "center", gap: "12px" }}
               >
-                {team.logo && (
+                {team.logoPath && (
                   <img
-                    src={team.logo}
+                    src={team.logoPath}
                     alt={team.name}
                     style={{ width: "32px", height: "32px" }}
                   />
