@@ -434,6 +434,16 @@ export const TEAMS: Team[] = ALL_TEAMS.filter((team) =>
   team.logoPath.endsWith(".png")
 )
 
+// Helper function to get all teams
+export const getAllTeams = (): Team[] => {
+  return ALL_TEAMS
+}
+
+// Helper function to get team by ID
+export const getTeamById = (teamId: string): Team | undefined => {
+  return ALL_TEAMS.find((t) => t.id === teamId)
+}
+
 // Helper function to get team name by ID for API calls
 export const getTeamNameById = (teamId: string): string => {
   const team = ALL_TEAMS.find((t) => t.id === teamId)
