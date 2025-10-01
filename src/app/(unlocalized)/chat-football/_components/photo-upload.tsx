@@ -59,10 +59,6 @@ export function PhotoUpload({ onUpload }: PhotoUploadProps) {
     },
   })
 
-  const handleChangePhoto = () => {
-    setPreviewUrl(null)
-  }
-
   return (
     <div className="q-and-a">
       <div className="image-upload">

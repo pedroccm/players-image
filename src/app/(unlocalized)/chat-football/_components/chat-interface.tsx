@@ -71,7 +71,7 @@ export function ChatInterface() {
     awayTeam: "",
   })
 
-  const [isGenerating, setIsGenerating] = useState(false)
+  const [_isGenerating, setIsGenerating] = useState(false)
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null
   )

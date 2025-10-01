@@ -42,7 +42,7 @@ export function PreviewPremium({
         <p className="premium-offer">
           Por só <span>R$3,00</span> você leva sua arte em
           <br />
-          <span>alta qualidade e sem marca d'água.</span>
+          <span>alta qualidade e sem marca d&apos;água.</span>
         </p>
         <div className="premium-btns">
           <button className="premium-buy-btn" onClick={onAccept}>
