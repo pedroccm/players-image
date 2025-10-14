@@ -87,7 +87,6 @@ export function ChatInterface() {
   const [backgroundGenerationCount, setBackgroundGenerationCount] = useState(0)
   const [generationProgress, setGenerationProgress] = useState(0)
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const uploadMessageIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -182,29 +181,6 @@ export function ChatInterface() {
       }
       setMessages((prev) => [...prev, newMessage])
       return newMessage.id
-    },
-    []
-  )
-
-  const updateMessage = useCallback(
-    (
-      id: string,
-      content: string,
-      imageUrl?: string,
-      pixData?: {
-        qrCodeImage: string
-        brCode: string
-        amount: number
-        paymentId: string
-      }
-    ) => {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === id
-            ? { ...msg, content, imageUrl, pixData, timestamp: new Date() }
-            : msg
-        )
-      )
     },
     []
   )
