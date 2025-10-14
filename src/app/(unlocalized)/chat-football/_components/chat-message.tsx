@@ -56,16 +56,30 @@ export function ChatMessage({ message }: ChatMessageProps) {
   // User message
   return (
     <div className="q-and-a">
-      {message.imageUrl ? (
-        <div className="image-upload">
+      <div className="reply-answer">
+        {message.content}
+        {message.imageUrl && (
           <div
-            className="personal-photo"
-            style={{ backgroundImage: `url(${message.imageUrl})` }}
-          ></div>
-        </div>
-      ) : (
-        <div className="reply-answer">{message.content}</div>
-      )}
+            style={{
+              marginTop: "12px",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <img
+              src={message.imageUrl}
+              alt="Selected"
+              style={{
+                width: "80px",
+                aspectRatio: "9 / 16",
+                objectFit: "cover",
+                borderRadius: "6px",
+                border: "1px solid var(--grey-medium)",
+              }}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

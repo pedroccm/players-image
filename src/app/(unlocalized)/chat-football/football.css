@@ -266,11 +266,12 @@
   box-shadow: var(--shadow);
   font-size: 16px;
   max-width: 333px;
-  height: 56px;
+  min-height: 56px;
   border-radius: 30px;
-  padding: 0 22px;
+  padding: 16px 22px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
   background-color: white;
 }
 

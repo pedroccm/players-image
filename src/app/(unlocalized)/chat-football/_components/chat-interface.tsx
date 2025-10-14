@@ -50,8 +50,6 @@ const BACKGROUND_OPTIONS = [
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg2.png",
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg3.png",
   "https://iynirubuonhsnxzzmrry.supabase.co/storage/v1/object/public/fotos/bg4.png",
-  "https://wbsfhwnmteeshqmjnyor.supabase.co/storage/v1/object/public/athlete_media/saida.png",
-  "https://wbsfhwnmteeshqmjnyor.supabase.co/storage/v1/object/public/athlete_media/spfc.jpg",
 ]
 
 export function ChatInterface() {
@@ -145,7 +143,7 @@ export function ChatInterface() {
   }
 
   const handleBackgroundSelect = async (backgroundUrl: string) => {
-    addMessage("user", "Fundo selecionado ✅")
+    addMessage("user", "Fundo selecionado ✅", backgroundUrl)
     setFormData((prev) => ({ ...prev, selectedBackgroundUrl: backgroundUrl }))
 
     await addBotMessage("Perfeito! Agora adicione sua foto:")
@@ -239,33 +237,74 @@ export function ChatInterface() {
   }
 
   const handleGenerateBackgrounds = async () => {
+    if (!formData.homeTeam) {
+      toast.error("Selecione um time primeiro")
+      return
+    }
+
     setIsGeneratingBackgrounds(true)
     await addBotMessage("Gerando novos fundos personalizados...")
 
     try {
-      const response = await fetch("/api/backgrounds/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          homeTeam: formData.homeTeam,
-          awayTeam: formData.awayTeam,
-          count: 4,
-        }),
-      })
+      const teamName = getTeamNameById(formData.homeTeam)
+      console.log("🔥 Gerando 4 backgrounds para:", teamName)
 
-      const data = await response.json()
+      const maxBackgrounds = 4
+      const newUrls: string[] = []
 
-      if (data.success && data.backgrounds) {
-        setGeneratedBackgrounds((prev) => [...prev, ...data.backgrounds])
-        await addBotMessage(
-          `✅ ${data.backgrounds.length} novos fundos gerados!`
-        )
+      // Generate 4 backgrounds sequentially using generate-local
+      for (let i = 1; i <= maxBackgrounds; i++) {
+        try {
+          console.log(`🌐 Gerando background ${i}/${maxBackgrounds}...`)
+
+          const response = await fetch("/api/backgrounds/generate-local", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              teamName,
+              teamId: formData.homeTeam,
+            }),
+          })
+
+          const data = await response.json()
+          console.log(`📊 Background ${i} response:`, data)
+
+          if (data.success && data.urls && Array.isArray(data.urls)) {
+            // Filter duplicates
+            const filteredUrls = data.urls.filter(
+              (url: string) =>
+                !generatedBackgrounds.includes(url) && !newUrls.includes(url)
+            )
+
+            if (filteredUrls.length > 0) {
+              newUrls.push(...filteredUrls)
+              // Update progressively
+              setGeneratedBackgrounds((prev) => [...prev, ...filteredUrls])
+              console.log(
+                `✅ Background ${i} adicionado, total: ${newUrls.length}`
+              )
+            } else {
+              console.log(`ℹ️ Background ${i} já existia (reutilizado)`)
+            }
+          } else {
+            console.error(`❌ Background ${i} failed:`, data.error)
+          }
+        } catch (error) {
+          console.error(`❌ Error generating background ${i}:`, error)
+        }
+      }
+
+      if (newUrls.length > 0) {
+        await addBotMessage(`✅ ${newUrls.length} novos fundos gerados!`)
+        toast.success(`${newUrls.length} fundos adicionados!`)
       } else {
-        throw new Error(data.error)
+        await addBotMessage("ℹ️ Todos os fundos já foram reutilizados!")
+        toast.info("Backgrounds já existiam - foram reutilizados!")
       }
     } catch (error) {
-      console.error("Error generating backgrounds:", error)
+      console.error("❌ Error generating backgrounds:", error)
       toast.error("Erro ao gerar fundos")
+      await addBotMessage("Ops! Erro ao gerar fundos. Tente novamente.")
     } finally {
       setIsGeneratingBackgrounds(false)
     }
