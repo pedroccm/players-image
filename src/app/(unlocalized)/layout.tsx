@@ -1,4 +1,4 @@
-import { Lato } from "next/font/google"
+import { Host_Grotesk, Lato } from "next/font/google"
 
 import { cn } from "@/lib/utils"
 
@@ -32,6 +32,13 @@ const latoFont = Lato({
   variable: "--font-lato",
 })
 
+const hostGroteskFont = Host_Grotesk({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  style: ["normal", "italic"],
+  variable: "--font-host-grotesk",
+})
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -39,7 +46,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         className={cn(
           "[&:lang(en)]:font-lato", // Set font styles based on the language
           "bg-background text-foreground antialiased overscroll-none", // Set background, text, , anti-aliasing styles, and overscroll behavior
-          latoFont.variable // Include Lato font variable
+          latoFont.variable, // Include Lato font variable
+          hostGroteskFont.variable // Include Host Grotesk font variable
         )}
       >
         <Providers locale="en" direction="ltr" session={null}>
