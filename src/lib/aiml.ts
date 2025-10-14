@@ -57,9 +57,10 @@ async function applyLogosToImage(
   gameDateTime?: string,
   homeTeam?: string,
   awayTeam?: string,
-  hasPremium: boolean = false
+  generateBothVersions: boolean = false
 ): Promise<{
   finalImage: string
+  premiumImage?: string
   locationImage?: string
   datetimeImage?: string
 }> {
@@ -328,11 +329,17 @@ async function applyLogosToImage(
 
     console.log("✅ Base composition completed successfully!")
 
-    // Add watermark if not premium
+    // Generate both versions if requested
     let finalResult = result
-    if (!hasPremium) {
-      console.log("💧 Adding watermark for free version...")
+    let premiumResult: Buffer | undefined
 
+    if (generateBothVersions) {
+      console.log("🎨 Generating BOTH versions (with and without watermark)...")
+
+      // Premium version = result without watermark (already done)
+      premiumResult = result
+
+      // Free version = result WITH watermark
       try {
         // Load watermark
         const watermarkPath = path.join(
@@ -373,13 +380,12 @@ async function applyLogosToImage(
           .toBuffer()
 
         console.log("💧 Watermark applied successfully!")
+        console.log("✅ Both versions generated!")
       } catch (watermarkError) {
         console.error("❌ Error applying watermark:", watermarkError)
-        console.log("📦 Using image without watermark")
+        console.log("📦 Using image without watermark as fallback")
         finalResult = result // Use original if watermark fails
       }
-    } else {
-      console.log("💎 Premium user - no watermark applied")
     }
 
     console.log("📊 Final image size:", finalResult.length, "bytes")
@@ -387,6 +393,7 @@ async function applyLogosToImage(
     // Convert back to base64 and return with text images
     return {
       finalImage: finalResult.toString("base64"),
+      premiumImage: premiumResult?.toString("base64"),
       locationImage: locationImageBase64,
       datetimeImage: datetimeImageBase64,
     }
@@ -413,9 +420,10 @@ export async function generateImageWithTextImages(
   gameDateTime?: string,
   homeTeam?: string,
   awayTeam?: string,
-  hasPremium: boolean = false
+  generateBothVersions: boolean = false
 ): Promise<{
   finalImage: string
+  premiumImage?: string
   locationImage?: string
   datetimeImage?: string
 }> {
@@ -469,7 +477,7 @@ export async function generateImageWithTextImages(
       gameDateTime,
       homeTeam,
       awayTeam,
-      hasPremium
+      generateBothVersions
     )
 
     return result

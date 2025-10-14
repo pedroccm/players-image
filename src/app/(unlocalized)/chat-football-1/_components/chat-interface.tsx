@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
 
 import { getTeamNameById } from "@/lib/teams"
 
@@ -64,6 +63,7 @@ export function ChatInterface() {
   const [isTyping, setIsTyping] = useState(false)
   const [userInput, setUserInput] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState<ChatFormData>({
     userName: "",
@@ -79,11 +79,15 @@ export function ChatInterface() {
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null
   )
+  const [generatedPremiumImageUrl, setGeneratedPremiumImageUrl] = useState<
+    string | null
+  >(null)
   const [generatedBackgrounds, setGeneratedBackgrounds] = useState<string[]>([])
   const [isGeneratingBackgrounds, setIsGeneratingBackgrounds] = useState(false)
   const [backgroundGenerationCount, setBackgroundGenerationCount] = useState(0)
   const [generationProgress, setGenerationProgress] = useState(0)
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const uploadMessageIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -115,6 +119,18 @@ export function ChatInterface() {
       }
     }
   }, [])
+
+  // Auto-focus no input quando o step muda
+  useEffect(() => {
+    const shouldShowInput = ["name", "location", "datetime"].includes(
+      currentStep
+    )
+    if (shouldShowInput && !isTyping && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
+    }
+  }, [currentStep, isTyping])
 
   const startFakeProgress = () => {
     setGenerationProgress(0)
@@ -165,6 +181,30 @@ export function ChatInterface() {
         pixData,
       }
       setMessages((prev) => [...prev, newMessage])
+      return newMessage.id
+    },
+    []
+  )
+
+  const updateMessage = useCallback(
+    (
+      id: string,
+      content: string,
+      imageUrl?: string,
+      pixData?: {
+        qrCodeImage: string
+        brCode: string
+        amount: number
+        paymentId: string
+      }
+    ) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === id
+            ? { ...msg, content, imageUrl, pixData, timestamp: new Date() }
+            : msg
+        )
+      )
     },
     []
   )
@@ -265,6 +305,7 @@ export function ChatInterface() {
         awayTeam: formData.awayTeam,
       })
 
+      // Gerar UMA ÚNICA vez - backend cria ambas as versões
       const response = await fetch("/api/chat-image/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -278,15 +319,24 @@ export function ChatInterface() {
           gameDateTime: overrideDateTime || formData.gameDateTime,
           homeTeam: formData.homeTeam,
           awayTeam: formData.awayTeam,
-          hasPremium: false,
+          generateBothVersions: true, // Backend gera ambas as versões
         }),
       })
 
       const data = await response.json()
 
       if (data.success) {
-        const imageUrl = `data:image/png;base64,${data.imageBase64}`
+        const imageUrl = `data:image/png;base64,${data.imageBase64}` // com marca d'água
+        const premiumImageUrl = data.premiumImageBase64
+          ? `data:image/png;base64,${data.premiumImageBase64}` // sem marca d'água
+          : null
+
         setGeneratedImageUrl(imageUrl)
+        setGeneratedPremiumImageUrl(premiumImageUrl)
+
+        // Mostrar a arte com marca d'água como mensagem no chat
+        addMessage("bot", "Aqui está sua arte! 🎨", imageUrl)
+
         setCurrentStep("preview")
       } else {
         throw new Error(data.message || data.error)
@@ -296,7 +346,6 @@ export function ChatInterface() {
       await addBotMessage(
         "Ops! Houve um erro ao gerar a imagem. Tente novamente."
       )
-      toast.error("Erro ao gerar imagem")
       setCurrentStep("datetime")
     } finally {
       setIsGenerating(false)
@@ -305,13 +354,11 @@ export function ChatInterface() {
 
   const handleGenerateBackgrounds = async () => {
     if (!formData.homeTeam) {
-      toast.error("Selecione um time primeiro")
       return
     }
 
     // Limite máximo de 5 gerações
     if (backgroundGenerationCount >= 5) {
-      toast.info("Você já gerou o máximo de 5 backgrounds personalizados!")
       addMessage(
         "bot",
         "Você já atingiu o limite de 5 backgrounds personalizados! Escolha um dos disponíveis."
@@ -351,7 +398,6 @@ export function ChatInterface() {
 
           const remaining = 5 - (backgroundGenerationCount + 1)
           addMessage("bot", "✅ Novo fundo gerado com sucesso!")
-          toast.success("Fundo adicionado!")
 
           // Perguntar se quer gerar mais (se não atingiu o limite)
           if (remaining > 0) {
@@ -386,7 +432,6 @@ export function ChatInterface() {
     } catch (error) {
       completeFakeProgress() // Completar progress bar em caso de erro
       console.error("❌ Error generating background:", error)
-      toast.error("Erro ao gerar fundo")
       addMessage("bot", "Ops! Erro ao gerar fundo. Tente novamente.")
     } finally {
       setIsGeneratingBackgrounds(false)
@@ -426,15 +471,16 @@ export function ChatInterface() {
       await addBotMessage(
         "Ops! Houve um erro ao criar o pagamento. Tente novamente."
       )
-      toast.error("Erro ao criar pagamento")
     }
   }
 
   const handlePremiumDecline = async () => {
     addMessage("user", "Não, obrigado")
     await addBotMessage(
-      "Tudo bem! Para criar uma nova arte, basta recarregar a página. Não esqueça de salvar sua foto!"
+      "Tudo bem! Para criar uma nova arte, basta recarregar a página.",
+      800
     )
+    await addBotMessage("Não esqueça de salvar sua foto!", 1200)
     setCurrentStep("complete")
   }
 
@@ -451,16 +497,13 @@ export function ChatInterface() {
       const data = await response.json()
 
       if (data.success) {
-        await addBotMessage(
-          "✅ Pagamento simulado com sucesso! Agora clique em 'Pagamento Concluído' para verificar."
-        )
+        await addBotMessage("✅ Pagamento simulado com sucesso!")
       } else {
         throw new Error(data.error)
       }
     } catch (error) {
       console.error("Error simulating payment:", error)
       await addBotMessage("❌ Erro ao simular pagamento. Tente novamente.")
-      toast.error("Erro ao simular pagamento")
     }
   }
 
@@ -487,75 +530,39 @@ export function ChatInterface() {
     } catch (error) {
       console.error("Error checking payment:", error)
       await addBotMessage("❌ Erro ao verificar pagamento. Tente novamente.")
-      toast.error("Erro ao verificar pagamento")
     }
   }
 
   const handlePaymentCompleted = async () => {
-    await addBotMessage(
-      "🎉 Pagamento confirmado! Parabéns, agora você tem acesso premium!",
-      1000
-    )
-    await addBotMessage("Gerando sua imagem premium sem marca d'água...", 1500)
+    await addBotMessage("🎉 Arte premium liberada!", 1000)
 
-    toast.success("Versão premium desbloqueada!")
+    // Usar a versão premium que já foi gerada anteriormente
+    if (generatedPremiumImageUrl) {
+      // Update state with premium image
+      setGeneratedImageUrl(generatedPremiumImageUrl)
 
-    // Regenerate image without watermark
-    try {
-      const response = await fetch("/api/chat-image/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          playerImageUrl: formData.playerImageUrl,
-          backgroundImageUrl: formData.selectedBackgroundUrl,
-          customPrompt:
-            "Combine the two images by cutting out the player photo (completely removing its background) and placing it on top of the background image, without blending, keeping the player sharp and clearly in the foreground.",
-          userName: formData.userName,
-          gameLocation: formData.gameLocation,
-          gameDateTime: formData.gameDateTime,
-          homeTeam: formData.homeTeam,
-          awayTeam: formData.awayTeam,
-          hasPremium: true, // This is the key difference - NO watermark
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        const premiumImageUrl = `data:image/png;base64,${data.imageBase64}`
-
-        // Update state with premium image
-        setGeneratedImageUrl(premiumImageUrl)
-
-        // Show the premium image without watermark
-        addMessage(
-          "bot",
-          "Sua imagem premium em alta resolução:",
-          premiumImageUrl
-        )
-
-        await addBotMessage(
-          "Para criar uma nova arte, basta recarregar a página. Não esqueça de salvar sua foto!",
-          2000
-        )
-
-        setCurrentStep("complete")
-      } else {
-        throw new Error(data.message || data.error)
-      }
-    } catch (error) {
-      console.error("Error generating premium image:", error)
-      await addBotMessage(
-        "❌ Erro ao gerar imagem premium. Mostrando a versão anterior."
+      // Show the premium image without watermark
+      addMessage(
+        "bot",
+        "Sua imagem premium em alta resolução:",
+        generatedPremiumImageUrl
       )
 
-      // Fallback to showing the original image
+      await addBotMessage(
+        "Para criar uma nova arte, basta recarregar a página.",
+        1500
+      )
+      await addBotMessage("Não esqueça de salvar sua foto!", 2000)
+
+      setCurrentStep("complete")
+    } else {
+      // Fallback: se por algum motivo não tiver a versão premium salva
+      await addBotMessage(
+        "❌ Erro ao carregar imagem premium. Mostrando a versão com marca d'água."
+      )
+
       if (generatedImageUrl) {
-        addMessage(
-          "bot",
-          "Sua imagem premium em alta resolução:",
-          generatedImageUrl
-        )
+        addMessage("bot", "Sua imagem em alta resolução:", generatedImageUrl)
       }
 
       setCurrentStep("complete")
@@ -656,14 +663,13 @@ export function ChatInterface() {
         )}
 
         {/* Preview & Premium */}
-        {(currentStep === "preview" || currentStep === "premium") &&
-          generatedImageUrl && (
-            <PreviewPremium
-              imageUrl={generatedImageUrl}
-              onAccept={handlePremiumAccept}
-              onDecline={handlePremiumDecline}
-            />
-          )}
+        {currentStep === "preview" && generatedImageUrl && (
+          <PreviewPremium
+            imageUrl={generatedImageUrl}
+            onAccept={handlePremiumAccept}
+            onDecline={handlePremiumDecline}
+          />
+        )}
 
         {/* Elemento invisível para scroll automático */}
         <div ref={messagesEndRef} />
@@ -674,6 +680,7 @@ export function ChatInterface() {
         <div className="q-and-a">
           <div className="input-container">
             <input
+              ref={inputRef}
               type="text"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}

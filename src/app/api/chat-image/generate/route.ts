@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       gameDateTime,
       homeTeam,
       awayTeam,
-      hasPremium,
+      generateBothVersions,
     } = await request.json()
 
     if (!playerImageUrl || !backgroundImageUrl) {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       length: gameDateTime?.length,
       trimmed: gameDateTime?.trim?.(),
     })
-    console.log("💎 API received hasPremium:", hasPremium)
+    console.log("🎨 API received generateBothVersions:", generateBothVersions)
 
     // Use custom prompt from user or default
     const prompt =
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       gameDateTime,
       homeTeam,
       awayTeam,
-      hasPremium
+      generateBothVersions
     )
 
     console.log("✅ generateImageWithTextImages completed successfully")
@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       imageBase64: result.finalImage,
+      premiumImageBase64: result.premiumImage,
       locationImage: result.locationImage,
       datetimeImage: result.datetimeImage,
       userName,
