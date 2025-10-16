@@ -1,4 +1,8 @@
-import { Host_Grotesk, Lato } from "next/font/google"
+import {
+  Host_Grotesk,
+  Lato,
+  Sofia_Sans_Extra_Condensed,
+} from "next/font/google"
 
 import { cn } from "@/lib/utils"
 
@@ -39,6 +43,13 @@ const hostGroteskFont = Host_Grotesk({
   variable: "--font-host-grotesk",
 })
 
+const sofiaSansExtraCondensedFont = Sofia_Sans_Extra_Condensed({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-sofia-sans-extra-condensed",
+})
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -47,7 +58,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           "[&:lang(en)]:font-lato", // Set font styles based on the language
           "bg-background text-foreground antialiased overscroll-none", // Set background, text, , anti-aliasing styles, and overscroll behavior
           latoFont.variable, // Include Lato font variable
-          hostGroteskFont.variable // Include Host Grotesk font variable
+          hostGroteskFont.variable, // Include Host Grotesk font variable
+          sofiaSansExtraCondensedFont.variable // Include Sofia Sans Extra Condensed font variable
         )}
       >
         <Providers locale="en" direction="ltr" session={null}>
