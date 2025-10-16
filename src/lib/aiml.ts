@@ -436,6 +436,13 @@ export async function generateImageWithTextImages(
   })
 
   try {
+    console.log("🌐 Calling AIML API with:", {
+      url: "https://api.aimlapi.com/v1/images/generations",
+      model: "google/gemini-2.5-flash-image-edit",
+      imageUrlsCount: imageUrls.length,
+      promptLength: prompt.length,
+    })
+
     const response = await fetch(
       "https://api.aimlapi.com/v1/images/generations",
       {
@@ -453,18 +460,40 @@ export async function generateImageWithTextImages(
       }
     )
 
+    console.log("📊 AIML API response status:", response.status)
+    console.log("📊 AIML API response headers:", {
+      contentType: response.headers.get("content-type"),
+      contentLength: response.headers.get("content-length"),
+    })
+
     if (!response.ok) {
       const errorText = await response.text()
+      console.error("❌ AIML API error response:", errorText)
       throw new Error(`AIML API error: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
 
-    if (!data.images?.[0]?.url) {
+    console.log("📦 AIML API full response:", JSON.stringify(data, null, 2))
+    console.log("🔍 Response structure check:", {
+      hasData: !!data,
+      hasDataArray: !!data.data,
+      dataType: typeof data.data,
+      dataIsArray: Array.isArray(data.data),
+      dataLength: data.data?.length,
+      firstData: data.data?.[0],
+      hasUrl: !!data.data?.[0]?.url,
+      dataKeys: Object.keys(data),
+    })
+
+    // API retorna data.data[0].url, não data.images[0].url
+    if (!data.data?.[0]?.url) {
+      console.error("❌ Invalid response structure - missing data[0].url")
+      console.error("📦 Full data object:", data)
       throw new Error("No image generated in response")
     }
 
-    const imageUrl = data.images[0].url
+    const imageUrl = data.data[0].url
     const imageResponse = await fetch(imageUrl)
     const imageBuffer = await imageResponse.arrayBuffer()
     const base64 = Buffer.from(imageBuffer).toString("base64")
@@ -552,18 +581,19 @@ export async function generateImage(
 
     const data = await response.json()
     console.log("AIML API response data:", {
-      hasImages: !!data.images,
-      imagesCount: data.images?.length || 0,
-      firstImageUrl: data.images?.[0]?.url,
+      hasData: !!data.data,
+      dataCount: data.data?.length || 0,
+      firstDataUrl: data.data?.[0]?.url,
     })
 
     // Handle the actual response structure from AIML API
-    if (!data.images?.[0]?.url) {
+    // API retorna data.data[0].url, não data.images[0].url
+    if (!data.data?.[0]?.url) {
       console.error("Invalid response structure:", data)
       throw new Error("No image generated in response")
     }
 
-    const imageUrl = data.images[0].url
+    const imageUrl = data.data[0].url
     console.log("Successfully generated image:", imageUrl)
 
     // Download the image and convert to base64

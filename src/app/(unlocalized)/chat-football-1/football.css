@@ -220,24 +220,26 @@
 }
 
 .q-and-a .question-content {
-  position: relative;
-  margin-bottom: 72px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 16px;
 }
 
 /* Espaçamento extra quando há mensagem do bot após outra mensagem do bot */
 .q-and-a:has(.question-content) + .q-and-a:has(.question-content) {
-  margin-top: 48px;
+  margin-top: 32px;
 }
 
 .q-and-a .question-content .logo-circle {
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
 }
 
 .q-and-a .question-content .question-data {
-  position: absolute;
-  left: 56px;
-  top: 20px;
+  flex: 1;
+  margin-top: 0;
 }
 
 .q-and-a .question-content .question {
