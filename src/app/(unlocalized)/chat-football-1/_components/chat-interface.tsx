@@ -710,7 +710,11 @@ export function ChatInterface() {
               src="/football/images/sand_clock.png"
               alt="loading"
             />
-            Gerando imagem... aguarde só um pouquinho.
+            <div className="loader-text">
+              Gerando imagem...
+              <br />
+              aguarde só um pouquinho.
+            </div>
           </div>
         </footer>
       )}

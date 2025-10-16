@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useDropzone } from "react-dropzone"
-import { toast } from "sonner"
 import { Upload } from "lucide-react"
 
 interface PhotoUploadProps {
@@ -12,6 +11,9 @@ interface PhotoUploadProps {
 export function PhotoUpload({ onUpload }: PhotoUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "uploading" | "success"
+  >("idle")
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -25,6 +27,7 @@ export function PhotoUpload({ onUpload }: PhotoUploadProps) {
 
       try {
         setIsUploading(true)
+        setUploadStatus("uploading")
 
         // Create preview
         const reader = new FileReader()
@@ -47,12 +50,12 @@ export function PhotoUpload({ onUpload }: PhotoUploadProps) {
         }
 
         const data = await response.json()
+        setUploadStatus("success")
         onUpload(data.url)
-        toast.success("Foto enviada com sucesso!")
       } catch (error) {
         console.error("Upload error:", error)
-        toast.error("Erro ao enviar foto. Tente novamente.")
         setPreviewUrl(null)
+        setUploadStatus("idle")
       } finally {
         setIsUploading(false)
       }
@@ -64,6 +67,35 @@ export function PhotoUpload({ onUpload }: PhotoUploadProps) {
       <div className="image-upload">
         {previewUrl ? (
           <>
+            {/* Mensagem de status do upload */}
+            {uploadStatus === "uploading" && (
+              <div
+                style={{
+                  color: "var(--main-blue)",
+                  fontWeight: 500,
+                  lineHeight: "100%",
+                  fontSize: "16px",
+                  marginBottom: "16px",
+                }}
+              >
+                Estamos subindo sua foto
+              </div>
+            )}
+
+            {uploadStatus === "success" && (
+              <div
+                style={{
+                  color: "var(--main-blue)",
+                  fontWeight: 500,
+                  lineHeight: "100%",
+                  fontSize: "16px",
+                  marginBottom: "16px",
+                }}
+              >
+                Foto enviada ✅
+              </div>
+            )}
+
             <div
               className="personal-photo"
               style={{ backgroundImage: `url(${previewUrl})` }}

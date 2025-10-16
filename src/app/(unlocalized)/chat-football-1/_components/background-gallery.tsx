@@ -20,6 +20,8 @@ export function BackgroundGallery({
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState(0)
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
   const handleCardClick = (index: number) => {
     setSelectedIndex(index)
@@ -43,6 +45,32 @@ export function BackgroundGallery({
 
   const handleViewerPrev = () => {
     setViewerIndex((prev) => (prev === 0 ? backgrounds.length - 1 : prev - 1))
+  }
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe) {
+      handleViewerNext()
+    } else if (isRightSwipe) {
+      handleViewerPrev()
+    }
   }
 
   if (isViewerOpen) {
@@ -80,7 +108,15 @@ export function BackgroundGallery({
 
         {/* Image */}
         <div
-          style={{ maxWidth: "90%", maxHeight: "80%", position: "relative" }}
+          style={{
+            maxWidth: "90%",
+            maxHeight: "80%",
+            position: "relative",
+            touchAction: "pan-y",
+          }}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         >
           <img
             src={backgrounds[viewerIndex]}
@@ -89,6 +125,7 @@ export function BackgroundGallery({
               maxWidth: "100%",
               maxHeight: "80vh",
               borderRadius: "8px",
+              userSelect: "none",
             }}
           />
 
@@ -97,13 +134,14 @@ export function BackgroundGallery({
             onClick={handleViewerPrev}
             style={{
               position: "absolute",
-              left: "-60px",
+              left: "16px",
               top: "50%",
               transform: "translateY(-50%)",
               width: "48px",
               height: "48px",
               cursor: "pointer",
               fill: "white",
+              filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3))",
             }}
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"
@@ -116,13 +154,14 @@ export function BackgroundGallery({
             onClick={handleViewerNext}
             style={{
               position: "absolute",
-              right: "-60px",
+              right: "16px",
               top: "50%",
               transform: "translateY(-50%)",
               width: "48px",
               height: "48px",
               cursor: "pointer",
               fill: "white",
+              filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3))",
             }}
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"

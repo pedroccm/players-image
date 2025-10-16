@@ -23,6 +23,7 @@
   background-color: var(--grey-light);
   min-height: 100vh;
   font-family: var(--font-host-grotesk), sans-serif;
+  width: 100%;
 }
 
 /* Center Flex Utility */
@@ -39,6 +40,7 @@
   max-width: 410px;
   padding-top: 88px;
   padding-bottom: 120px;
+  width: 100%;
 }
 
 @media (min-width: 768px) {
@@ -213,9 +215,18 @@
   margin-top: 32px;
 }
 
+.q-and-a:first-child {
+  margin-top: 0;
+}
+
 .q-and-a .question-content {
   position: relative;
   margin-bottom: 72px;
+}
+
+/* Espaçamento extra quando há mensagem do bot após outra mensagem do bot */
+.q-and-a:has(.question-content) + .q-and-a:has(.question-content) {
+  margin-top: 48px;
 }
 
 .q-and-a .question-content .logo-circle {
@@ -593,6 +604,11 @@
   align-items: center;
   justify-content: center;
   flex-direction: row;
+}
+
+.footer-page .loader .loader-text {
+  text-align: center;
+  line-height: 1.4;
 }
 
 .footer-btn .sand-clock,

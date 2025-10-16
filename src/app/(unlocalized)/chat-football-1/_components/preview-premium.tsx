@@ -12,22 +12,7 @@ export function PreviewPremium({
   onDecline,
 }: PreviewPremiumProps) {
   return (
-    <div className="q-and-a" style={{ marginTop: "48px" }}>
-      {/* Preview Image */}
-      <div style={{ marginBottom: "32px" }}>
-        <img
-          src={imageUrl}
-          alt="Generated"
-          style={{
-            width: "100%",
-            maxWidth: "400px",
-            borderRadius: "8px",
-            boxShadow: "var(--shadow)",
-          }}
-          onClick={() => window.open(imageUrl, "_blank")}
-        />
-      </div>
-
+    <div className="q-and-a" style={{ marginTop: "24px" }}>
       {/* Premium Section */}
       <div className="premium-section">
         <h3 className="premium-title">

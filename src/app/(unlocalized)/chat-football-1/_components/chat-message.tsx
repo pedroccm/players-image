@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { toast } from "sonner"
 
 interface Message {
   id: string
@@ -36,10 +35,9 @@ export function ChatMessage({
     try {
       await navigator.clipboard.writeText(message.pixData.brCode)
       setCopied(true)
-      toast.success("Código PIX copiado!")
       setTimeout(() => setCopied(false), 2000)
     } catch (_error) {
-      toast.error("Erro ao copiar código")
+      console.error("Erro ao copiar código")
     }
   }
 
