@@ -7,7 +7,7 @@ interface PreviewPremiumProps {
 }
 
 export function PreviewPremium({
-  imageUrl,
+  imageUrl: _imageUrl,
   onAccept,
   onDecline,
 }: PreviewPremiumProps) {

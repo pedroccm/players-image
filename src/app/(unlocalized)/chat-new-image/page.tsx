@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Bot, Image, Loader2, Plus, Send, User } from "lucide-react"
+import { Bot, Loader2, Send, User } from "lucide-react"
 
 import { getTeamNameById } from "@/lib/teams"
 
@@ -70,9 +70,6 @@ export default function ChatNewImagePage() {
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
-    null
-  )
 
   // Dynamic backgrounds states
   const [generatedBackgrounds, setGeneratedBackgrounds] = useState<string[]>([])
@@ -345,7 +342,6 @@ export default function ChatNewImagePage() {
 
       if (data.success) {
         const imageUrl = `data:image/png;base64,${data.imageBase64}`
-        setGeneratedImageUrl(imageUrl)
         addMessage("bot", "🎉 Sua imagem foi gerada com sucesso!", imageUrl)
       } else {
         throw new Error(data.message || data.error)
