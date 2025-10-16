@@ -349,7 +349,8 @@ export function ChatInterface() {
       const teamName = getTeamNameById(formData.homeTeam)
       console.log("🔥 Gerando 1 background para:", teamName)
 
-      const response = await fetch("/api/backgrounds/generate-local", {
+      // Step 1: Start async job
+      const startResponse = await fetch("/api/backgrounds/generate-async", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -358,8 +359,46 @@ export function ChatInterface() {
         }),
       })
 
-      const data = await response.json()
-      console.log("📊 Background response:", data)
+      const startData = await startResponse.json()
+      console.log("📊 Job started:", startData)
+
+      if (!startData.success || !startData.jobId) {
+        throw new Error(`Failed to start job: ${startData.error}`)
+      }
+
+      const jobId = startData.jobId
+
+      // Step 2: Poll for completion
+      let attempts = 0
+      const maxAttempts = 120 // 2 minutes max
+      let data: { success: boolean; urls: string[]; error?: string } | null =
+        null
+
+      while (attempts < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+
+        const statusResponse = await fetch(
+          `/api/backgrounds/status?jobId=${jobId}`
+        )
+        const statusData = await statusResponse.json()
+
+        console.log(`📊 Job status (attempt ${attempts}):`, statusData)
+
+        if (statusData.status === "completed") {
+          data = { success: true, urls: statusData.result }
+          break
+        } else if (statusData.status === "failed") {
+          throw new Error(`Job failed: ${statusData.error}`)
+        }
+
+        attempts++
+      }
+
+      if (!data) {
+        throw new Error("Job timed out after 2 minutes")
+      }
+
+      console.log("✅ Job completed:", data)
 
       if (data.success && data.urls && Array.isArray(data.urls)) {
         // Filter duplicates
