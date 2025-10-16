@@ -50,14 +50,17 @@ exports.handler = async (event) => {
         .list(normalizedTeamName, { limit: 10 })
 
       if (existingFiles && existingFiles.length > 0) {
-        // Retornar primeiro background existente
-        const existingFile = existingFiles[0]
+        // Selecionar um background aleatório da lista
+        const randomIndex = Math.floor(Math.random() * existingFiles.length)
+        const existingFile = existingFiles[randomIndex]
         const existingUrl = supabase.storage
           .from("fotos")
           .getPublicUrl(`${normalizedTeamName}/${existingFile.name}`)
           .data.publicUrl
 
-        console.log(`⚡ Background cached encontrado: ${existingUrl}`)
+        console.log(
+          `⚡ Background cached encontrado (${randomIndex + 1}/${existingFiles.length}): ${existingUrl}`
+        )
 
         return {
           statusCode: 200,
