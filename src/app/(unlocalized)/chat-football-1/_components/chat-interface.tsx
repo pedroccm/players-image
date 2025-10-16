@@ -102,6 +102,9 @@ export function ChatInterface() {
   // Auto-scroll quando mensagens mudam ou currentStep muda
   useEffect(() => {
     const scrollToBottom = () => {
+      // Não scrollar durante geração de imagem para evitar focus no loader
+      if (currentStep === "generating") return
+
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
 
