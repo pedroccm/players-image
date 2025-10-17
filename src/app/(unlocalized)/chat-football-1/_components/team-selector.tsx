@@ -6,17 +6,20 @@ import { getAllTeams } from "@/lib/teams"
 
 interface TeamSelectorProps {
   onSelect: (teamId: string) => void
+  excludeTeamId?: string
 }
 
-export function TeamSelector({ onSelect }: TeamSelectorProps) {
+export function TeamSelector({ onSelect, excludeTeamId }: TeamSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null)
 
   const teams = getAllTeams()
-  const filteredTeams = teams.filter((team) =>
-    team.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredTeams = teams
+    .filter((team) => team.id !== excludeTeamId)
+    .filter((team) =>
+      team.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
 
   const handleTeamClick = (teamId: string) => {
     setSelectedTeam(teamId)

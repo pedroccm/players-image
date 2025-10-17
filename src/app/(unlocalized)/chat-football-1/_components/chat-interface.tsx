@@ -661,7 +661,10 @@ export function ChatInterface() {
 
         {/* Team Selector - Away */}
         {currentStep === "awayTeam" && !isTyping && (
-          <TeamSelector onSelect={handleAwayTeamSelect} />
+          <TeamSelector
+            onSelect={handleAwayTeamSelect}
+            excludeTeamId={formData.homeTeam}
+          />
         )}
 
         {/* Background Gallery */}
