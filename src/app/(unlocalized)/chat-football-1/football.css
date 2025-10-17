@@ -222,7 +222,7 @@
 .q-and-a .question-content {
   display: flex;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 16px;
 }
 
@@ -239,7 +239,7 @@
 
 .q-and-a .question-content .question-data {
   flex: 1;
-  margin-top: 0;
+  margin-top: 20px;
 }
 
 .q-and-a .question-content .question {
@@ -555,7 +555,8 @@
 
 .footer-btn {
   display: block;
-  width: 365px;
+  width: calc(100vw - 106px);
+  max-width: 600px;
   height: 56px;
   border-radius: 30px;
   font-size: 18px;
@@ -567,12 +568,6 @@
   line-height: 100%;
   border: none;
   cursor: pointer;
-}
-
-@media (max-width: 375px) {
-  .footer-btn {
-    width: 300px;
-  }
 }
 
 .footer-btn .arrow-right {
