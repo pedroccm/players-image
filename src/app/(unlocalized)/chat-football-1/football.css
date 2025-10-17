@@ -437,8 +437,8 @@
 
 .gallery-card .scale,
 .gallery-card .check {
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   background-color: var(--grey-light);
   fill: var(--grey-medium);
   display: block;
@@ -449,8 +449,8 @@
 }
 
 .gallery-card .check-floating {
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   background-color: var(--grey-light);
   fill: var(--grey-medium);
   display: none;
@@ -500,6 +500,8 @@
   margin-top: 8px;
   background-color: var(--grey-light);
   cursor: pointer;
+  width: 100%;
+  display: block;
 }
 
 /* Photo Upload */
