@@ -200,8 +200,8 @@
   font-size: 28px;
   text-transform: uppercase;
   font-weight: bold;
-  line-height: 20px;
-  letter-spacing: -1%;
+  line-height: 20px !important;
+  letter-spacing: -0.01em;
   border-radius: 0px 144px 144px 140px;
   background-color: var(--green);
   color: white;

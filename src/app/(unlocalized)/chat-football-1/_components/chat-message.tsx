@@ -52,12 +52,7 @@ export function ChatMessage({
               alt="logo"
             />
             <div className="question-data">
-              <p
-                className="question"
-                style={{ lineHeight: "1.6", marginBottom: "8px" }}
-              >
-                {message.content}
-              </p>
+              <p className="question">{message.content}</p>
             </div>
           </div>
         )}
