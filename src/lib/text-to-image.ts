@@ -128,7 +128,7 @@ export async function generateGameLocationImage(
     height: 60,
     fontSize: 44, // Increased from 42px to 44px (+2px)
     font: "Agharti-Bold.ttf", // Use bold variant
-    textColor: "#AB161A", // Changed to #AB161A
+    textColor: "#000000", // Black text
     backgroundColor: "transparent",
   }
 
