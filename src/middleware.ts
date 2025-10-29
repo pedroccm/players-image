@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   console.log("MIDDLEWARE:", pathname)
 
-  // Skip middleware for chat-image, form-image, form-new-image, chat-new-image, chat-football, chat-football-1, banana-image, bananas-image, photo-mix and test-bg routes
+  // Skip middleware for chat-image, form-image, form-new-image, chat-new-image, chat-football, chat-football-1, chat-football-v2, banana-image, bananas-image, photo-mix and test-bg routes
   if (
     pathname.startsWith("/chat-image") ||
     pathname.startsWith("/form-image") ||
@@ -43,6 +43,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/chat-new-image") ||
     pathname.startsWith("/chat-football") ||
     pathname.startsWith("/chat-football-1") ||
+    pathname.startsWith("/chat-football-v2") ||
     pathname.startsWith("/banana-image") ||
     pathname.startsWith("/bananas-image") ||
     pathname.startsWith("/photo-mix") ||
@@ -100,7 +101,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Explicitly exclude api, netlify functions, chat-image, form-image, form-new-image, chat-new-image, chat-football, chat-football-1, banana-image, bananas-image, photo-mix, test-bg, football (static assets) and their subpaths
-    "/((?!api|\\.netlify|_next|favicon.ico|sitemap.xml|robots.txt|images|docs|escudos_2025|bgs|chat-image|form-image|form-new-image|chat-new-image|chat-football|chat-football-1|banana-image|bananas-image|photo-mix|test-bg|football).*)",
+    // Explicitly exclude api, netlify functions, chat-image, form-image, form-new-image, chat-new-image, chat-football, chat-football-1, chat-football-v2, banana-image, bananas-image, photo-mix, test-bg, football (static assets) and their subpaths
+    "/((?!api|\\.netlify|_next|favicon.ico|sitemap.xml|robots.txt|images|docs|escudos_2025|bgs|chat-image|form-image|form-new-image|chat-new-image|chat-football|chat-football-1|chat-football-v2|banana-image|bananas-image|photo-mix|test-bg|football).*)",
   ],
 }
