@@ -71,14 +71,28 @@ export function PhotoUpload({ onUpload }: PhotoUploadProps) {
             {uploadStatus === "uploading" && (
               <div
                 style={{
-                  color: "var(--main-blue)",
-                  fontWeight: 500,
-                  lineHeight: "100%",
-                  fontSize: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "12px",
                   marginBottom: "16px",
                 }}
               >
-                Estamos subindo sua foto
+                <img
+                  src="/football/images/loading.gif"
+                  alt="Carregando..."
+                  style={{ width: "80px", height: "auto" }}
+                />
+                <div
+                  style={{
+                    color: "var(--main-blue)",
+                    fontWeight: 500,
+                    lineHeight: "100%",
+                    fontSize: "16px",
+                  }}
+                >
+                  Estamos subindo sua foto
+                </div>
               </div>
             )}
 
@@ -128,31 +142,50 @@ export function PhotoUpload({ onUpload }: PhotoUploadProps) {
             }}
           >
             <input {...getInputProps()} />
-            <Upload
-              size={48}
-              style={{ color: "var(--green)", strokeWidth: 1.5 }}
-            />
-            <p
-              style={{
-                color: "var(--main-blue)",
-                fontWeight: 500,
-                fontSize: "16px",
-              }}
-            >
-              {isUploading
-                ? "Enviando foto..."
-                : isDragActive
-                  ? "Solte a imagem aqui"
-                  : "Clique ou arraste para enviar sua foto"}
-            </p>
-            <p
-              style={{
-                color: "var(--grey)",
-                fontSize: "14px",
-              }}
-            >
-              JPG, PNG ou WEBP • Máx 10MB
-            </p>
+            {isUploading ? (
+              <>
+                <img
+                  src="/football/images/loading.gif"
+                  alt="Carregando..."
+                  style={{ width: "80px", height: "auto" }}
+                />
+                <p
+                  style={{
+                    color: "var(--main-blue)",
+                    fontWeight: 500,
+                    fontSize: "16px",
+                  }}
+                >
+                  Enviando foto...
+                </p>
+              </>
+            ) : (
+              <>
+                <Upload
+                  size={48}
+                  style={{ color: "var(--green)", strokeWidth: 1.5 }}
+                />
+                <p
+                  style={{
+                    color: "var(--main-blue)",
+                    fontWeight: 500,
+                    fontSize: "16px",
+                  }}
+                >
+                  {isDragActive
+                    ? "Solte a imagem aqui"
+                    : "Clique ou arraste para enviar sua foto"}
+                </p>
+                <p
+                  style={{
+                    color: "var(--grey)",
+                    fontSize: "14px",
+                  }}
+                >
+                  JPG, PNG ou WEBP • Máx 10MB
+                </p>
+              </>
+            )}
           </div>
         )}
       </div>

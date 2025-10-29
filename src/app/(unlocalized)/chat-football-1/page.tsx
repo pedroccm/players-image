@@ -39,19 +39,11 @@ export default function ChatFootballPage() {
       <div className="football-container">
         {/* Header */}
         <header className="page-header center-flex">
-          <div className="main center-flex">
-            <img
-              className="website-logo"
-              src="/football/images/logo.png"
-              alt="logo"
-            />
-            <div className="header-text center-flex">
-              <h1 className="website-title">
-                de <span>craque</span>
-              </h1>
-              <h2 className="website-subtitle">by players.cx</h2>
-            </div>
-          </div>
+          <img
+            className="logo-de-craque"
+            src="/football/images/logo_de_craque.png"
+            alt="de craque by players.cx"
+          />
           <img
             className="smiling-icon"
             src="/football/images/smile.png"

@@ -21,6 +21,9 @@
 
 .football-wrapper {
   background-color: var(--grey-light);
+  background-image: url("/football/images/bg-pattern.png");
+  background-repeat: repeat;
+  background-size: auto;
   min-height: 100vh;
   font-family: var(--font-host-grotesk), sans-serif;
   width: 100%;
@@ -115,60 +118,10 @@
   }
 }
 
-.page-header .main {
-  width: 203px;
-  gap: 10px;
-}
-
-.page-header .main .website-logo {
-  width: 54px;
+.page-header .logo-de-craque {
   height: 46px;
-}
-
-.page-header .main .website-title {
-  color: var(--main-blue);
-  font-size: 28px;
-  margin: 0;
-}
-
-.page-header .main .website-title span {
-  color: var(--green);
-  position: relative;
-}
-
-.page-header .main .website-title span::before {
-  content: "";
-  position: absolute;
-  width: 10px;
-  height: 3.5px;
-  background-color: var(--green);
-  bottom: 0;
-  left: 50%;
-  translate: calc(-50% - 1px) -8.8px;
-  transform: skewX(25deg);
-}
-
-.page-header .main .header-text {
-  flex-direction: column;
-}
-
-.page-header .main .header-text .website-subtitle {
-  font-size: 9px;
-  translate: 0px -6px;
-  color: var(--main-blue);
-  position: relative;
-  margin: 0;
-}
-
-.page-header .main .header-text .website-subtitle::before {
-  content: "";
-  position: absolute;
-  width: 3px;
-  height: 1px;
-  background-color: var(--main-blue);
-  left: 50%;
-  bottom: 0;
-  translate: calc(-50% - 1px) -2.8px;
+  width: auto;
+  object-fit: contain;
 }
 
 .page-header .smiling-icon {
@@ -556,14 +509,16 @@
 }
 
 .footer-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: calc(100vw - 106px);
   max-width: 600px;
   height: 56px;
   border-radius: 30px;
   font-size: 18px;
   text-transform: uppercase;
-  position: relative;
   background-color: white;
   color: var(--main-blue);
   font-weight: 700;
@@ -575,10 +530,6 @@
 .footer-btn .arrow-right {
   width: 24px;
   height: 24px;
-  position: absolute;
-  right: 52px;
-  top: 50%;
-  translate: 0 -50%;
   fill: var(--main-blue);
 }
 
