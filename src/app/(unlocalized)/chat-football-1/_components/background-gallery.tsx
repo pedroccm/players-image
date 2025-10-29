@@ -24,17 +24,6 @@ export function BackgroundGallery({
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
   const handleCardClick = (index: number) => {
-    setSelectedIndex(index)
-  }
-
-  const handleCheckClick = (e: React.MouseEvent, index: number) => {
-    e.stopPropagation()
-    setSelectedIndex(index)
-    onSelect(backgrounds[index])
-  }
-
-  const handleScaleClick = (e: React.MouseEvent, index: number) => {
-    e.stopPropagation()
     setViewerIndex(index)
     setIsViewerOpen(true)
   }
@@ -179,6 +168,7 @@ export function BackgroundGallery({
           <button
             className="footer-btn center-flex"
             onClick={() => {
+              setSelectedIndex(viewerIndex)
               onSelect(backgrounds[viewerIndex])
               setIsViewerOpen(false)
             }}
@@ -216,28 +206,6 @@ export function BackgroundGallery({
                 version="1.1"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 768 768"
-              >
-                <path d="M617.376 169.376l-329.376 329.376-137.376-137.376c-12.512-12.512-32.768-12.512-45.248 0s-12.512 32.768 0 45.248l160 160c12.512 12.512 32.768 12.512 45.248 0l352-352c12.512-12.512 12.512-32.768 0-45.248s-32.768-12.512-45.248 0z"></path>
-              </svg>
-            </div>
-            <div className="options center-flex">
-              <div
-                className="scale center-flex"
-                onClick={(e) => handleScaleClick(e, index)}
-              >
-                <img
-                  className="scale-arrows"
-                  src="/football/images/scale.png"
-                  alt="scale"
-                  style={{ width: "100%", height: "100%" }}
-                />
-              </div>
-              <svg
-                className="check"
-                version="1.1"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 768 768"
-                onClick={(e) => handleCheckClick(e, index)}
               >
                 <path d="M617.376 169.376l-329.376 329.376-137.376-137.376c-12.512-12.512-32.768-12.512-45.248 0s-12.512 32.768 0 45.248l160 160c12.512 12.512 32.768 12.512 45.248 0l352-352c12.512-12.512 12.512-32.768 0-45.248s-32.768-12.512-45.248 0z"></path>
               </svg>
