@@ -197,10 +197,11 @@
 
 .q-and-a .question-content .question {
   font-family: var(--font-sofia-sans-extra-condensed), Arial, sans-serif;
-  font-size: 26px;
+  font-size: 28px;
   text-transform: uppercase;
-  font-weight: 500;
-  line-height: 0.7;
+  font-weight: bold;
+  line-height: 20px;
+  letter-spacing: -1%;
   border-radius: 0px 144px 144px 140px;
   background-color: var(--green);
   color: white;
