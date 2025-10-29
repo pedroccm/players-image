@@ -76,6 +76,9 @@ export function ChatInterface() {
   })
 
   const [_isGenerating, setIsGenerating] = useState(false)
+  const [generatingMessageId, setGeneratingMessageId] = useState<string | null>(
+    null
+  )
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null
   )
@@ -188,12 +191,34 @@ export function ChatInterface() {
     []
   )
 
+  const updateMessage = useCallback(
+    (
+      messageId: string,
+      content: string,
+      imageUrl?: string,
+      pixData?: {
+        qrCodeImage: string
+        brCode: string
+        amount: number
+        paymentId: string
+      }
+    ) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId ? { ...msg, content, imageUrl, pixData } : msg
+        )
+      )
+    },
+    []
+  )
+
   const addBotMessage = useCallback(
     async (content: string, delay = 800) => {
       setIsTyping(true)
       await new Promise((resolve) => setTimeout(resolve, delay))
-      addMessage("bot", content)
+      const messageId = addMessage("bot", content)
       setIsTyping(false)
+      return messageId
     },
     [addMessage]
   )
@@ -264,7 +289,8 @@ export function ChatInterface() {
     setFormData((prev) => ({ ...prev, gameDateTime: datetime }))
     setUserInput("")
 
-    await addBotMessage("Gerando sua arte personalizada...")
+    const messageId = await addBotMessage("Gerando sua arte personalizada...")
+    setGeneratingMessageId(messageId)
     setCurrentStep("generating")
     await generateImage(datetime)
   }
@@ -313,8 +339,10 @@ export function ChatInterface() {
         setGeneratedImageUrl(imageUrl)
         setGeneratedPremiumImageUrl(premiumImageUrl)
 
-        // Mostrar a arte com marca d'água como mensagem no chat
-        addMessage("bot", "Aqui está sua arte! 🎨", imageUrl)
+        // Atualizar a mensagem "Gerando..." com a arte final
+        if (generatingMessageId) {
+          updateMessage(generatingMessageId, "Aqui está sua arte! 🎨", imageUrl)
+        }
 
         setCurrentStep("preview")
       } else {
