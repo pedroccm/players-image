@@ -290,6 +290,7 @@ export function ChatInterface() {
     setUserInput("")
 
     const messageId = await addBotMessage("Gerando sua arte personalizada...")
+    console.log("Created generating message with ID:", messageId)
     setGeneratingMessageId(messageId)
     setCurrentStep("generating")
     await generateImage(datetime)
@@ -330,6 +331,12 @@ export function ChatInterface() {
 
       const data = await response.json()
 
+      console.log("API Response:", {
+        success: data.success,
+        hasImage: !!data.imageBase64,
+      })
+      console.log("generatingMessageId:", generatingMessageId)
+
       if (data.success) {
         const imageUrl = `data:image/png;base64,${data.imageBase64}` // com marca d'água
         const premiumImageUrl = data.premiumImageBase64
@@ -341,7 +348,13 @@ export function ChatInterface() {
 
         // Atualizar a mensagem "Gerando..." com a arte final
         if (generatingMessageId) {
+          console.log("Updating message:", generatingMessageId)
           updateMessage(generatingMessageId, "Aqui está sua arte! 🎨", imageUrl)
+        } else {
+          console.error(
+            "generatingMessageId is null! Creating new message instead"
+          )
+          addMessage("bot", "Aqui está sua arte! 🎨", imageUrl)
         }
 
         setCurrentStep("preview")
