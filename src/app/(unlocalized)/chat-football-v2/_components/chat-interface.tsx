@@ -658,7 +658,7 @@ export function ChatInterface() {
       updateMessage(
         checkingMessageId,
         "❌ Erro ao carregar imagem premium. Mostrando a versão com marca d'água.",
-        generatedImageUrl
+        generatedImageUrl ?? undefined
       )
 
       setCurrentStep("complete")
