@@ -111,8 +111,12 @@ export function ChatInterface() {
       // Não scrollar durante geração de imagem para evitar focus no loader
       if (currentStep === "generating") return
 
-      // Não scrollar quando estiver na tela de preview (arte + pagamento)
-      if (currentStep === "preview") return
+      // Na tela de preview, scrollar para o balão da arte ficar no topo
+      if (currentStep === "preview") {
+        const lastMessage = document.querySelector(".q-and-a:last-of-type")
+        lastMessage?.scrollIntoView({ behavior: "smooth", block: "start" })
+        return
+      }
 
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
