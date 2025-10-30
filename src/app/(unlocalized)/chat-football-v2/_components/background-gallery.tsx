@@ -237,7 +237,14 @@ export function BackgroundGallery({
                 }}
               />
             )}
-            <span style={{ position: "relative", zIndex: 1 }}>
+            <span
+              style={{
+                position: "relative",
+                zIndex: 1,
+                fontSize: "20px",
+                lineHeight: "36px",
+              }}
+            >
               {isGenerating
                 ? `Gerando... ${Math.round(generationProgress)}%`
                 : "Gerar mais um fundo"}
