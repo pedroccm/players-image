@@ -68,7 +68,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 <span className="instructions-text">
                   Pode ser feedback, sugestão, algum
                   <br />
-                  problema, ou só um "oi". Estamos por aqui.
+                  problema, ou só um &ldquo;oi&rdquo;. Estamos por aqui.
                 </span>
               </p>
             </header>
