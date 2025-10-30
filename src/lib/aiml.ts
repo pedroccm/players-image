@@ -215,7 +215,7 @@ async function applyLogosToImage(
         // Use image exactly as returned from API - no resize or crop
         textOverlays.push({
           input: gameLocationImageData.imageBuffer,
-          top: 1088, // y: 1088 (moved up 5px from 1093)
+          top: 1099, // y: 1099 (moved down 11px from 1088)
           left: 162, // x: 162
         })
 
@@ -265,7 +265,7 @@ async function applyLogosToImage(
         // Use image exactly as returned from API - no resize or crop
         textOverlays.push({
           input: gameDateTimeImageData.imageBuffer,
-          top: 1143, // y: 1143 (moved up 5px from 1148)
+          top: 1132, // y: 1132 (moved up 11px from 1143)
           left: 162, // x: 162
         })
 
