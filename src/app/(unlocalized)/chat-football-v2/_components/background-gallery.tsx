@@ -247,7 +247,7 @@ export function BackgroundGallery({
             >
               {isGenerating
                 ? `Gerando... ${Math.round(generationProgress)}%`
-                : "Gerar mais um fundo"}
+                : "Gerar fundo do seu time"}
             </span>
           </button>
         </>
