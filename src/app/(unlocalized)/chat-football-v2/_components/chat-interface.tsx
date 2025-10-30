@@ -543,17 +543,12 @@ export function ChatInterface() {
 
       if (data.success) {
         // Atualizar a mensagem com dados PIX
-        updateMessage(
-          pixMessageId,
-          "Aqui está seu pagamento PIX:",
-          undefined,
-          {
-            qrCodeImage: data.data.brCodeBase64,
-            brCode: data.data.brCode,
-            amount: data.data.amount,
-            paymentId: data.data.id,
-          }
-        )
+        updateMessage(pixMessageId, "Aqui está seu pagamento PIX:", undefined, {
+          qrCodeImage: data.data.brCodeBase64,
+          brCode: data.data.brCode,
+          amount: data.data.amount,
+          paymentId: data.data.id,
+        })
 
         // Mudar para estado de aguardando pagamento
         setCurrentStep("premium")
@@ -610,7 +605,8 @@ export function ChatInterface() {
 
   const handleCheckPayment = async (paymentId: string) => {
     try {
-      await addBotMessage("Verificando pagamento...")
+      // Criar mensagem inicial e guardar ID
+      const checkingMessageId = addMessage("bot", "Verificando pagamento...")
 
       const response = await fetch(
         `/api/abacatepay/check-payment?id=${paymentId}`
@@ -619,7 +615,7 @@ export function ChatInterface() {
 
       if (data.success) {
         if (data.data.status === "PAID") {
-          await handlePaymentCompleted()
+          await handlePaymentCompleted(checkingMessageId)
         } else {
           await addBotMessage(
             `❌ Pagamento ainda não confirmado. Status: ${data.data.status}`
@@ -634,18 +630,19 @@ export function ChatInterface() {
     }
   }
 
-  const handlePaymentCompleted = async () => {
-    await addBotMessage("🎉 Arte premium liberada!", 1000)
+  const handlePaymentCompleted = async (checkingMessageId: string) => {
+    // Aguardar 1 segundo antes de atualizar a mensagem
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    // Usar a versão premium que já foi gerada anteriormente
+    // Atualizar a mensagem "Verificando pagamento..." com "🎉 Arte premium liberada!" e a imagem
     if (generatedPremiumImageUrl) {
       // Update state with premium image
       setGeneratedImageUrl(generatedPremiumImageUrl)
 
-      // Show the premium image without watermark
-      addMessage(
-        "bot",
-        "Sua imagem premium em alta resolução:",
+      // Atualizar mensagem existente com celebração e imagem premium
+      updateMessage(
+        checkingMessageId,
+        "🎉 Arte premium liberada!",
         generatedPremiumImageUrl
       )
 
@@ -658,13 +655,11 @@ export function ChatInterface() {
       setCurrentStep("complete")
     } else {
       // Fallback: se por algum motivo não tiver a versão premium salva
-      await addBotMessage(
-        "❌ Erro ao carregar imagem premium. Mostrando a versão com marca d'água."
+      updateMessage(
+        checkingMessageId,
+        "❌ Erro ao carregar imagem premium. Mostrando a versão com marca d'água.",
+        generatedImageUrl
       )
-
-      if (generatedImageUrl) {
-        addMessage("bot", "Sua imagem em alta resolução:", generatedImageUrl)
-      }
 
       setCurrentStep("complete")
     }
