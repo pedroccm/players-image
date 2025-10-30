@@ -526,9 +526,11 @@ export function ChatInterface() {
   }
 
   const handlePremiumAccept = async () => {
-    addMessage("user", "💳 Sim, quero premium!")
-
-    await addBotMessage("Perfeito! Criando seu pagamento PIX...")
+    // Criar mensagem inicial de carregamento e guardar ID
+    const pixMessageId = addMessage(
+      "bot",
+      "Perfeito! Criando seu pagamento PIX..."
+    )
 
     try {
       const response = await fetch("/api/abacatepay/create-qrcode", {
@@ -540,13 +542,18 @@ export function ChatInterface() {
       const data = await response.json()
 
       if (data.success) {
-        // Adicionar mensagem com dados PIX
-        addMessage("bot", "Aqui está seu pagamento PIX:", undefined, {
-          qrCodeImage: data.data.brCodeBase64,
-          brCode: data.data.brCode,
-          amount: data.data.amount,
-          paymentId: data.data.id,
-        })
+        // Atualizar a mensagem com dados PIX
+        updateMessage(
+          pixMessageId,
+          "Aqui está seu pagamento PIX:",
+          undefined,
+          {
+            qrCodeImage: data.data.brCodeBase64,
+            brCode: data.data.brCode,
+            amount: data.data.amount,
+            paymentId: data.data.id,
+          }
+        )
 
         // Mudar para estado de aguardando pagamento
         setCurrentStep("premium")
