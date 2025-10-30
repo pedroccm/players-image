@@ -38,7 +38,7 @@
 
 /* Container */
 .football-container {
-  padding-inline: 15px;
+  padding-inline: 25px;
   margin-inline: auto;
   max-width: 410px;
   padding-top: 88px;
@@ -860,8 +860,8 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  width: 100%;
-  max-width: 365px;
+  width: calc(100vw - 106px);
+  max-width: 600px;
   height: 56px;
   border-radius: 30px;
   font-size: 18px;
