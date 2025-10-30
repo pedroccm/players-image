@@ -537,7 +537,6 @@ export function ChatInterface() {
   }
 
   const handlePremiumDecline = async () => {
-    addMessage("user", "Não, obrigado")
     await addBotMessage("Tudo bem!\nSó não esqueça de baixar sua foto", 800)
     setCurrentStep("complete")
   }
