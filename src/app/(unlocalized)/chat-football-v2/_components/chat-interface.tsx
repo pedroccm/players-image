@@ -818,7 +818,10 @@ export function ChatInterface() {
       {/* Download Button - Complete State */}
       {currentStep === "complete" && (
         <footer className="footer-page1 center-flex">
-          <button className="footer-btn center-flex" onClick={handleDownloadImage}>
+          <button
+            className="footer-btn center-flex"
+            onClick={handleDownloadImage}
+          >
             Baixar Imagem
             <svg
               className="arrow-right"
