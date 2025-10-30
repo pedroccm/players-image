@@ -111,6 +111,9 @@ export function ChatInterface() {
       // Não scrollar durante geração de imagem para evitar focus no loader
       if (currentStep === "generating") return
 
+      // Não scrollar quando estiver na tela de preview (arte + pagamento)
+      if (currentStep === "preview") return
+
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
 
