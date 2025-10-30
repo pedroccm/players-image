@@ -105,6 +105,9 @@ export function ChatInterface() {
   // Auto-scroll quando mensagens mudam ou currentStep muda
   useEffect(() => {
     const scrollToBottom = () => {
+      // Não scrollar na tela inicial e no preenchimento do nome
+      if (currentStep === "welcome" || currentStep === "name") return
+
       // Não scrollar durante geração de imagem para evitar focus no loader
       if (currentStep === "generating") return
 

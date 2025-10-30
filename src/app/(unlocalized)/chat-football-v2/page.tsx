@@ -1,8 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import localFont from "next/font/local"
 
 import { ChatInterface } from "./_components/chat-interface"
+import { ContactModal } from "./_components/contact-modal"
 
 import "./football.css"
 
@@ -28,6 +30,8 @@ const agharti = localFont({
 })
 
 export default function ChatFootballPage() {
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
+
   return (
     <div className={`${agharti.variable} football-wrapper`}>
       {/* Top Corners */}
@@ -48,6 +52,8 @@ export default function ChatFootballPage() {
             className="smiling-icon"
             src="/football/images/smile.png"
             alt="smile"
+            onClick={() => setIsContactModalOpen(true)}
+            style={{ cursor: "pointer" }}
           />
         </header>
 
@@ -60,6 +66,12 @@ export default function ChatFootballPage() {
         <div className="corner bottom-right"></div>
         <div className="corner bottom-left"></div>
       </div>
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
     </div>
   )
 }
