@@ -16,6 +16,7 @@ interface Message {
   content: string
   timestamp: Date
   imageUrl?: string
+  className?: string
   pixData?: {
     qrCodeImage: string
     brCode: string
@@ -113,8 +114,8 @@ export function ChatInterface() {
 
       // Na tela de preview, scrollar para o balão da arte ficar no topo
       if (currentStep === "preview") {
-        const lastMessage = document.querySelector(".q-and-a:last-of-type")
-        lastMessage?.scrollIntoView({ behavior: "smooth", block: "start" })
+        const arteElement = document.querySelector(".arte-scroll")
+        arteElement?.scrollIntoView({ behavior: "smooth", block: "start" })
         return
       }
 
@@ -185,7 +186,8 @@ export function ChatInterface() {
         brCode: string
         amount: number
         paymentId: string
-      }
+      },
+      className?: string
     ) => {
       const newMessage: Message = {
         id: Math.random().toString(36).substr(2, 9),
@@ -193,6 +195,7 @@ export function ChatInterface() {
         content,
         timestamp: new Date(),
         imageUrl,
+        className,
         pixData,
       }
       setMessages((prev) => [...prev, newMessage])
@@ -211,11 +214,14 @@ export function ChatInterface() {
         brCode: string
         amount: number
         paymentId: string
-      }
+      },
+      className?: string
     ) => {
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === messageId ? { ...msg, content, imageUrl, pixData } : msg
+          msg.id === messageId
+            ? { ...msg, content, imageUrl, className, pixData }
+            : msg
         )
       )
     },
@@ -359,12 +365,24 @@ export function ChatInterface() {
         // Atualizar a mensagem "Gerando..." com a arte final
         if (generatingMessageId) {
           console.log("Updating message:", generatingMessageId)
-          updateMessage(generatingMessageId, "Aqui está sua arte! 🎨", imageUrl)
+          updateMessage(
+            generatingMessageId,
+            "Aqui está sua arte! 🎨",
+            imageUrl,
+            undefined,
+            "arte-scroll"
+          )
         } else {
           console.error(
             "generatingMessageId is null! Creating new message instead"
           )
-          addMessage("bot", "Aqui está sua arte! 🎨", imageUrl)
+          addMessage(
+            "bot",
+            "Aqui está sua arte! 🎨",
+            imageUrl,
+            undefined,
+            "arte-scroll"
+          )
         }
 
         setCurrentStep("preview")

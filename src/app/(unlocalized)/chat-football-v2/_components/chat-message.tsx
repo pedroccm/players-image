@@ -8,6 +8,7 @@ interface Message {
   content: string
   timestamp: Date
   imageUrl?: string
+  className?: string
   pixData?: {
     qrCodeImage: string
     brCode: string
@@ -43,7 +44,7 @@ export function ChatMessage({
 
   if (message.type === "bot") {
     return (
-      <div className="q-and-a">
+      <div className={`q-and-a ${message.className || ""}`}>
         {message.content && (
           <div className="question-content">
             <img
