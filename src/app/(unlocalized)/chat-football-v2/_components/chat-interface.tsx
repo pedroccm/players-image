@@ -538,12 +538,20 @@ export function ChatInterface() {
 
   const handlePremiumDecline = async () => {
     addMessage("user", "Não, obrigado")
-    await addBotMessage(
-      "Tudo bem! Para criar uma nova arte, basta recarregar a página.",
-      800
-    )
-    await addBotMessage("Não esqueça de salvar sua foto!", 1200)
+    await addBotMessage("Tudo bem!\nSó não esqueça de baixar sua foto", 800)
     setCurrentStep("complete")
+  }
+
+  const handleDownloadImage = () => {
+    if (!generatedImageUrl) return
+
+    // Converter base64 para blob e fazer download
+    const link = document.createElement("a")
+    link.href = generatedImageUrl
+    link.download = `players-matchday-${formData.userName || "imagem"}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const handleSimulatePayment = async (paymentId: string) => {
@@ -805,6 +813,30 @@ export function ChatInterface() {
               aguarde só um pouquinho.
             </div>
           </div>
+        </footer>
+      )}
+
+      {/* Download Button - Complete State */}
+      {currentStep === "complete" && (
+        <footer className="footer-page center-flex">
+          <button
+            className="footer-btn center-flex"
+            style={{
+              backgroundColor: "#10b981",
+              borderColor: "#10b981",
+            }}
+            onClick={handleDownloadImage}
+          >
+            Baixar Imagem
+            <svg
+              className="arrow-right"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 640 640"
+            >
+              <path d="M517.504 288l-194.272-194.272 45.248-45.248 271.52 271.52-271.52 271.52-45.248-45.248 194.272-194.272h-517.504v-64z"></path>
+            </svg>
+          </button>
         </footer>
       )}
     </div>
